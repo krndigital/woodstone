@@ -20,23 +20,23 @@ WoodStone needs one web-based system to replace its Google Sheets workbook. The 
 
 All 15 items on the client's list are covered. Customer loyalty and purchase orders were added after the check.
 
-| # | Client item | Covered in | Status |
-| --- | --- | --- | --- |
-| 1 | Dashboard: daily sales, profit, expenses | Section 6 owner dashboard | Covered |
-| 2 | POS billing: orders, invoices, discounts | M2, M4 | Covered |
-| 3 | Table management: booking, occupied/free | M1, Section 3 | Covered |
-| 4 | Kitchen management: KOT, preparation status | M3 | Covered |
-| 5 | Menu management: items, categories, prices | M5 | Covered |
-| 6 | Inventory: stock, raw materials, wastage | M7 | Covered |
-| 7 | Purchase management: suppliers, purchase orders | M6 | Added purchase orders (FR-6.5, FR-6.6) |
-| 8 | Cash flow: cash in, cash out, daily balance | M9 | Covered |
-| 9 | Accounting: income, expenses, liabilities | M13 | Covered |
-| 10 | Staff management: attendance, salary, shifts | M12 | Covered |
-| 11 | Customer management: profiles, loyalty | M10 | Added profiles and loyalty (FR-10.4 to FR-10.7) |
-| 12 | Reservation: table and cabin bookings | FR-1.4 | Covered |
-| 13 | Reports: daily, weekly, monthly | Section 6 | Covered |
-| 14 | Tax and billing: VAT, PAN, invoice records | FR-4.1, FR-4.3, FR-4.4, Section 8.1 | Covered |
-| 15 | User access: owner, manager, cashier, kitchen | Section 4 | Covered (plus waiter, bartender, store keeper) |
+| #   | Client item                                     | Covered in                          | Status                                          |
+| --- | ----------------------------------------------- | ----------------------------------- | ----------------------------------------------- |
+| 1   | Dashboard: daily sales, profit, expenses        | Section 6 owner dashboard           | Covered                                         |
+| 2   | POS billing: orders, invoices, discounts        | M2, M4                              | Covered                                         |
+| 3   | Table management: booking, occupied/free        | M1, Section 3                       | Covered                                         |
+| 4   | Kitchen management: KOT, preparation status     | M3                                  | Covered                                         |
+| 5   | Menu management: items, categories, prices      | M5                                  | Covered                                         |
+| 6   | Inventory: stock, raw materials, wastage        | M7                                  | Covered                                         |
+| 7   | Purchase management: suppliers, purchase orders | M6                                  | Added purchase orders (FR-6.5, FR-6.6)          |
+| 8   | Cash flow: cash in, cash out, daily balance     | M9                                  | Covered                                         |
+| 9   | Accounting: income, expenses, liabilities       | M13                                 | Covered                                         |
+| 10  | Staff management: attendance, salary, shifts    | M12                                 | Covered                                         |
+| 11  | Customer management: profiles, loyalty          | M10                                 | Added profiles and loyalty (FR-10.4 to FR-10.7) |
+| 12  | Reservation: table and cabin bookings           | FR-1.4                              | Covered                                         |
+| 13  | Reports: daily, weekly, monthly                 | Section 6                           | Covered                                         |
+| 14  | Tax and billing: VAT, PAN, invoice records      | FR-4.1, FR-4.3, FR-4.4, Section 8.1 | Covered                                         |
+| 15  | User access: owner, manager, cashier, kitchen   | Section 4                           | Covered (plus waiter, bartender, store keeper)  |
 
 ## 2. How WoodStone works today
 
@@ -44,17 +44,17 @@ WoodStone runs everything in one Google Sheets workbook with about 9 tabs. Only 
 
 ### 2.1 Sheet-by-sheet field analysis
 
-| Tab | Fields today | What it is used for | Observations | Replaced by module |
-| --- | --- | --- | --- | --- |
-| Sales | Date (BS, e.g. 2082-10-01), Sales amount, Total (monthly) | One total per day, typed by hand | Magh 2082 total was Rs 258,395 over 29 days, about Rs 8,900 per day (range Rs 2,075 to Rs 20,695). No item, table, payment-mode or staff detail. Monthly total is a manual row. | POS, Daily sales, Revenue reports |
-| Sales (cols F–I) | Credit amount, Total credit, Credit received amount, Total received | Credit (udharo) tracking | Columns exist but are empty. No customer name or due date. | Customer credit ledger |
-| Kharcha | Date, Heading (free text), Amount (Rs), Total amount | Every purchase and expense | About 2,000 rows. Date typed only on the first row of each day. Free-text items with typos ("Fiench fries", "Blck"). Kitchen ingredients (chicken, milk, chowmein), resale stock (Shikher, Surya, Highlander, Panmint, Coke, Sprite, beer), gas, and construction (stone Rs 9,800, block Rs 7,000) are all mixed together. | Purchase, Inventory, Expense categories, Capex |
-| kitchen amdani | Date, Kitchen Amdani, Amount, Kitchen kharcha, Amount | Kitchen income vs kitchen cost | Empty. Kitchen income cannot be separated today because sales have no item detail. | Kitchen P/L (automatic) |
-| CASH FLOW | Date, Cash inflow, Cash outflow, Total amount | Cash position | Empty. | Cash book / Cash flow |
-| RENT | Date, Month (Nepali month), Rent, Electricity, PANI supply, Status | Fixed operating cost | Rent Rs 25,000 per month from Asar 2082. First 3 months tagged "investment" (setup period), later "expense". Electricity and water columns are empty. | Operational cost / recurring expenses |
-| bank deposit | Not visible in screenshots | Cash deposited to bank | To confirm fields. | Bank account ledger |
-| Investment | Not visible | Owner capital put in | To confirm fields. | Capital / owner equity |
-| esewa karobar | Not visible | eSewa wallet transactions | To confirm fields. | Payment modes + wallet ledger |
+| Tab              | Fields today                                                        | What it is used for              | Observations                                                                                                                                                                                                                                                                                                               | Replaced by module                             |
+| ---------------- | ------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Sales            | Date (BS, e.g. 2082-10-01), Sales amount, Total (monthly)           | One total per day, typed by hand | Magh 2082 total was Rs 258,395 over 29 days, about Rs 8,900 per day (range Rs 2,075 to Rs 20,695). No item, table, payment-mode or staff detail. Monthly total is a manual row.                                                                                                                                            | POS, Daily sales, Revenue reports              |
+| Sales (cols F–I) | Credit amount, Total credit, Credit received amount, Total received | Credit (udharo) tracking         | Columns exist but are empty. No customer name or due date.                                                                                                                                                                                                                                                                 | Customer credit ledger                         |
+| Kharcha          | Date, Heading (free text), Amount (Rs), Total amount                | Every purchase and expense       | About 2,000 rows. Date typed only on the first row of each day. Free-text items with typos ("Fiench fries", "Blck"). Kitchen ingredients (chicken, milk, chowmein), resale stock (Shikher, Surya, Highlander, Panmint, Coke, Sprite, beer), gas, and construction (stone Rs 9,800, block Rs 7,000) are all mixed together. | Purchase, Inventory, Expense categories, Capex |
+| kitchen amdani   | Date, Kitchen Amdani, Amount, Kitchen kharcha, Amount               | Kitchen income vs kitchen cost   | Empty. Kitchen income cannot be separated today because sales have no item detail.                                                                                                                                                                                                                                         | Kitchen P/L (automatic)                        |
+| CASH FLOW        | Date, Cash inflow, Cash outflow, Total amount                       | Cash position                    | Empty.                                                                                                                                                                                                                                                                                                                     | Cash book / Cash flow                          |
+| RENT             | Date, Month (Nepali month), Rent, Electricity, PANI supply, Status  | Fixed operating cost             | Rent Rs 25,000 per month from Asar 2082. First 3 months tagged "investment" (setup period), later "expense". Electricity and water columns are empty.                                                                                                                                                                      | Operational cost / recurring expenses          |
+| bank deposit     | Not visible in screenshots                                          | Cash deposited to bank           | To confirm fields.                                                                                                                                                                                                                                                                                                         | Bank account ledger                            |
+| Investment       | Not visible                                                         | Owner capital put in             | To confirm fields.                                                                                                                                                                                                                                                                                                         | Capital / owner equity                         |
+| esewa karobar    | Not visible                                                         | eSewa wallet transactions        | To confirm fields.                                                                                                                                                                                                                                                                                                         | Payment modes + wallet ledger                  |
 
 ### 2.2 What the photos show
 
@@ -76,13 +76,13 @@ WoodStone runs everything in one Google Sheets workbook with about 9 tabs. Only 
 
 The floor is modelled as **Zones** that hold **Seats**. A seat is either an open **Table** or a closed wooden **Cabin**. Admin can add, rename, move and disable seats, so the layout is never hard-coded.
 
-| Zone | Seat type | Proposed codes | Notes |
-| --- | --- | --- | --- |
-| Garden (outdoor) | Table | G1–G8 | Open benches, glass tables, tyre seats |
-| Cabin row (outdoor) | Cabin | C1, C2, C3 | Closed wooden cabins with curtain doors |
-| Indoor hall | Table + Cabin | H1–H4, C4 | Wooden booth counted as Cabin 4 |
-| Counter / bar | Counter | BAR | Walk-in, takeaway and drinks at the counter |
-| Takeaway / delivery | Virtual | TA | Orders with no seat |
+| Zone                | Seat type     | Proposed codes | Notes                                       |
+| ------------------- | ------------- | -------------- | ------------------------------------------- |
+| Garden (outdoor)    | Table         | G1–G8          | Open benches, glass tables, tyre seats      |
+| Cabin row (outdoor) | Cabin         | C1, C2, C3     | Closed wooden cabins with curtain doors     |
+| Indoor hall         | Table + Cabin | H1–H4, C4      | Wooden booth counted as Cabin 4             |
+| Counter / bar       | Counter       | BAR            | Walk-in, takeaway and drinks at the counter |
+| Takeaway / delivery | Virtual       | TA             | Orders with no seat                         |
 
 **Seat attributes:** code, name, zone, type (table / cabin / counter / virtual), capacity, QR token, sort order, active flag, optional minimum spend or cabin charge.
 
@@ -102,35 +102,35 @@ Exact seat counts are an open question (Section 9).
 
 There are three login levels: **Super Admin**, **Admin** and **Staff**. Staff logins carry one of five predefined roles. Super Admin can edit what each role may do, but the predefined roles ship ready to use.
 
-| Level | Role | Who | Login method | Main screens |
-| --- | --- | --- | --- | --- |
-| Super Admin | Owner | Restaurant owner / Softechpark support | Email + password, 2FA | Everything, including settings, users, roles, balance sheet, audit log |
-| Admin | Manager | Restaurant manager | Email or phone + password | Operations, menu, purchase, expenses, staff, reports (no system settings or role editing) |
-| Staff | Cashier | Counter staff | Username + 4–6 digit PIN | POS, billing, payments, cash in/out, day close |
-| Staff | Waiter / Captain | Floor staff | PIN on shared tablet or own phone | Floor map, take order, send KOT, request bill |
-| Staff | Kitchen (Chef) | Kitchen | PIN on kitchen screen | Kitchen display (KDS): accept, prepare, ready |
-| Staff | Bartender | Bar | PIN on bar screen | Bar display, drinks KOT, bar stock |
-| Staff | Store keeper | Purchase / stock person | PIN | Purchase entry, stock in/out, wastage |
+| Level       | Role             | Who                                    | Login method                      | Main screens                                                                              |
+| ----------- | ---------------- | -------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| Super Admin | Owner            | Restaurant owner / Softechpark support | Email + password, 2FA             | Everything, including settings, users, roles, balance sheet, audit log                    |
+| Admin       | Manager          | Restaurant manager                     | Email or phone + password         | Operations, menu, purchase, expenses, staff, reports (no system settings or role editing) |
+| Staff       | Cashier          | Counter staff                          | Username + 4–6 digit PIN          | POS, billing, payments, cash in/out, day close                                            |
+| Staff       | Waiter / Captain | Floor staff                            | PIN on shared tablet or own phone | Floor map, take order, send KOT, request bill                                             |
+| Staff       | Kitchen (Chef)   | Kitchen                                | PIN on kitchen screen             | Kitchen display (KDS): accept, prepare, ready                                             |
+| Staff       | Bartender        | Bar                                    | PIN on bar screen                 | Bar display, drinks KOT, bar stock                                                        |
+| Staff       | Store keeper     | Purchase / stock person                | PIN                               | Purchase entry, stock in/out, wastage                                                     |
 
 ### 4.1 Permission matrix
 
 S = Super Admin, A = Admin. Yes / View / No for staff roles.
 
-| Action | S | A | Cashier | Waiter | Kitchen | Bar | Store |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Take order, send KOT | Yes | Yes | Yes | Yes | No | Yes (drinks) | No |
-| Cancel / void a sent item | Yes | Yes | With reason, needs Admin PIN | No | No | No | No |
-| Apply discount | Yes | Yes | Up to set % limit | No | No | No | No |
-| Print bill, take payment | Yes | Yes | Yes | Request only | No | No | No |
-| Edit or delete a paid bill | Yes | View | No | No | No | No | No |
-| Menu and prices | Yes | Yes | View | View | View | View | No |
-| Purchase and stock entry | Yes | Yes | No | No | Request | Request | Yes |
-| Expense entry | Yes | Yes | Petty cash only | No | No | No | No |
-| Cash in / cash out, day close | Yes | Yes | Yes | No | No | No | No |
-| Staff, attendance, salary | Yes | Yes (no salary edit by default) | No | Own attendance | Own attendance | Own attendance | Own attendance |
-| Reports | All | All operational | Own shift | No | Kitchen only | Bar only | Stock only |
-| Balance sheet, P/L | Yes | View | No | No | No | No | No |
-| Users, roles, settings, audit log | Yes | No | No | No | No | No | No |
+| Action                            | S   | A                               | Cashier                      | Waiter         | Kitchen        | Bar            | Store          |
+| --------------------------------- | --- | ------------------------------- | ---------------------------- | -------------- | -------------- | -------------- | -------------- |
+| Take order, send KOT              | Yes | Yes                             | Yes                          | Yes            | No             | Yes (drinks)   | No             |
+| Cancel / void a sent item         | Yes | Yes                             | With reason, needs Admin PIN | No             | No             | No             | No             |
+| Apply discount                    | Yes | Yes                             | Up to set % limit            | No             | No             | No             | No             |
+| Print bill, take payment          | Yes | Yes                             | Yes                          | Request only   | No             | No             | No             |
+| Edit or delete a paid bill        | Yes | View                            | No                           | No             | No             | No             | No             |
+| Menu and prices                   | Yes | Yes                             | View                         | View           | View           | View           | No             |
+| Purchase and stock entry          | Yes | Yes                             | No                           | No             | Request        | Request        | Yes            |
+| Expense entry                     | Yes | Yes                             | Petty cash only              | No             | No             | No             | No             |
+| Cash in / cash out, day close     | Yes | Yes                             | Yes                          | No             | No             | No             | No             |
+| Staff, attendance, salary         | Yes | Yes (no salary edit by default) | No                           | Own attendance | Own attendance | Own attendance | Own attendance |
+| Reports                           | All | All operational                 | Own shift                    | No             | Kitchen only   | Bar only       | Stock only     |
+| Balance sheet, P/L                | Yes | View                            | No                           | No             | No             | No             | No             |
+| Users, roles, settings, audit log | Yes | No                              | No                           | No             | No             | No             | No             |
 
 Every void, discount, refund, price change and bill edit is written to an **audit log** with user, time, old value and new value.
 
@@ -326,17 +326,17 @@ A guest scans the table or cabin QR, taps a button, and the waiter for that seat
 
 **How it is implemented**
 
-| Part | Technology | Detail |
-| --- | --- | --- |
-| QR link | Seat qr\_token | /menu?t=\<token> resolves to the seat; no guest login needed |
-| Create request | REST API | POST /api/v1/public/seats/{token}/service-requests with type and note; rate-limited; saves a service\_requests row (seat, type, status, created, accepted\_by, accepted\_at, done\_at) |
-| Instant ring, app open | Laravel Reverb websockets | Event broadcast to channels outlet.1.reception and staff.{waiter\_id}; the waiter PWA plays the sound with Web Audio and vibrates |
-| Ring when screen is locked | Web Push (VAPID) via service worker | Works on Android Chrome; on iPhone only if the PWA is added to the home screen (iOS 16.4+); uses the system notification sound, cannot loop |
-| Reliable loud ring on staff phones | Small Android app (Capacitor wrapper of the same PWA) + Firebase Cloud Messaging high-priority | Custom alarm-style notification channel with looping sound, works when phone is locked or app is closed; recommended for Phase 2 |
-| Counter / reception | Always-on screen with speakers | Screen Wake Lock keeps it on; staff tap "Start shift" once so the browser allows sound |
-| Guest status | Polling every 5 s or Server-Sent Events | Guest page shows Sent / Waiter coming / Done |
-| Escalation | Laravel scheduled job / delayed queue job | Checks unaccepted requests at 60 s and 3 min and re-broadcasts |
-| Internet loss | Local server on counter PC | Guests on restaurant Wi-Fi reach the local server, so calls keep ringing inside the restaurant; calls from mobile data need internet |
+| Part                               | Technology                                                                                     | Detail                                                                                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| QR link                            | Seat qr\_token                                                                                 | /menu?t=\<token> resolves to the seat; no guest login needed                                                                                                                           |
+| Create request                     | REST API                                                                                       | POST /api/v1/public/seats/{token}/service-requests with type and note; rate-limited; saves a service\_requests row (seat, type, status, created, accepted\_by, accepted\_at, done\_at) |
+| Instant ring, app open             | Laravel Reverb websockets                                                                      | Event broadcast to channels outlet.1.reception and staff.{waiter\_id}; the waiter PWA plays the sound with Web Audio and vibrates                                                      |
+| Ring when screen is locked         | Web Push (VAPID) via service worker                                                            | Works on Android Chrome; on iPhone only if the PWA is added to the home screen (iOS 16.4+); uses the system notification sound, cannot loop                                            |
+| Reliable loud ring on staff phones | Small Android app (Capacitor wrapper of the same PWA) + Firebase Cloud Messaging high-priority | Custom alarm-style notification channel with looping sound, works when phone is locked or app is closed; recommended for Phase 2                                                       |
+| Counter / reception                | Always-on screen with speakers                                                                 | Screen Wake Lock keeps it on; staff tap "Start shift" once so the browser allows sound                                                                                                 |
+| Guest status                       | Polling every 5 s or Server-Sent Events                                                        | Guest page shows Sent / Waiter coming / Done                                                                                                                                           |
+| Escalation                         | Laravel scheduled job / delayed queue job                                                      | Checks unaccepted requests at 60 s and 3 min and re-broadcasts                                                                                                                         |
+| Internet loss                      | Local server on counter PC                                                                     | Guests on restaurant Wi-Fi reach the local server, so calls keep ringing inside the restaurant; calls from mobile data need internet                                                   |
 
 **Settings:** which buttons show, cooldown seconds, escalation times, sound per type, quiet hours, reception phone number for the tel: button.
 
@@ -346,29 +346,29 @@ A guest scans the table or cabin QR, taps a button, and the waiter for that seat
 
 Every report filters by BS date range (today, yesterday, this week, this month, custom) and exports to PDF and Excel. The owner dashboard shows today's key figures on one phone screen.
 
-| Report | Shows | Filters | Who sees it |
-| --- | --- | --- | --- |
-| Owner dashboard | Today's sales, bills, average bill, cash in hand, expenses, profit estimate, top 5 items, running tables | Today / this month | Super Admin, Admin |
-| Daily sales | Sales per day, by payment mode, discount, service charge, VAT, cancellations | Date range | Super Admin, Admin, Cashier (own shift) |
-| Revenue day / month | Revenue trend by day and by Nepali month, month vs last month | Date range, zone | Super Admin, Admin |
-| Most ordered items | Top and bottom items by quantity and value | Date range, category, station | Super Admin, Admin, Kitchen |
-| Item-wise cost and profit | Qty, revenue, cost, profit, margin % per item | Date range, category | Super Admin, Admin |
-| Table / cabin performance | Revenue, covers and average bill per seat and per zone | Date range | Super Admin, Admin |
-| Kitchen P/L | Food sales vs ingredient cost and kitchen expenses | Day / month | Super Admin, Admin |
-| Bar P/L | Drinks and cigarette sales vs cost | Day / month | Super Admin, Admin |
-| Expenses | By category, operating vs investment, by mode | Date range, category | Super Admin, Admin |
-| Operational cost | Rent, utilities, salary, gas, repair per month | Month | Super Admin, Admin |
-| Sales vs purchase | Sales against purchases per day and month | Date range | Super Admin, Admin |
-| Cash flow / cash book | Opening, cash in, cash out, closing per account | Date range, account | Super Admin, Admin |
-| Day close | Expected vs counted cash, difference, by cashier | Date | Super Admin, Admin |
-| Stock | Current stock, value, low stock, wastage, consumption | Date, item kind | Super Admin, Admin, Store |
-| Customer credit | Balance and ageing per customer | As of date | Super Admin, Admin |
-| Supplier payable | Balance per supplier | As of date | Super Admin, Admin |
-| Staff | Attendance, salary sheet, sales per waiter | Month | Super Admin, Admin |
-| Void / discount / audit | Every void, discount and edit with user and reason | Date range, user | Super Admin |
-| Profit and loss | Income, cost of goods, expenses, net profit | BS period | Super Admin |
-| Balance sheet | Assets, liabilities, equity | As of date | Super Admin |
-| VAT sales and purchase book | IRD-format sales and purchase registers (if VAT registered) | Month | Super Admin |
+| Report                      | Shows                                                                                                    | Filters                       | Who sees it                             |
+| --------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------- |
+| Owner dashboard             | Today's sales, bills, average bill, cash in hand, expenses, profit estimate, top 5 items, running tables | Today / this month            | Super Admin, Admin                      |
+| Daily sales                 | Sales per day, by payment mode, discount, service charge, VAT, cancellations                             | Date range                    | Super Admin, Admin, Cashier (own shift) |
+| Revenue day / month         | Revenue trend by day and by Nepali month, month vs last month                                            | Date range, zone              | Super Admin, Admin                      |
+| Most ordered items          | Top and bottom items by quantity and value                                                               | Date range, category, station | Super Admin, Admin, Kitchen             |
+| Item-wise cost and profit   | Qty, revenue, cost, profit, margin % per item                                                            | Date range, category          | Super Admin, Admin                      |
+| Table / cabin performance   | Revenue, covers and average bill per seat and per zone                                                   | Date range                    | Super Admin, Admin                      |
+| Kitchen P/L                 | Food sales vs ingredient cost and kitchen expenses                                                       | Day / month                   | Super Admin, Admin                      |
+| Bar P/L                     | Drinks and cigarette sales vs cost                                                                       | Day / month                   | Super Admin, Admin                      |
+| Expenses                    | By category, operating vs investment, by mode                                                            | Date range, category          | Super Admin, Admin                      |
+| Operational cost            | Rent, utilities, salary, gas, repair per month                                                           | Month                         | Super Admin, Admin                      |
+| Sales vs purchase           | Sales against purchases per day and month                                                                | Date range                    | Super Admin, Admin                      |
+| Cash flow / cash book       | Opening, cash in, cash out, closing per account                                                          | Date range, account           | Super Admin, Admin                      |
+| Day close                   | Expected vs counted cash, difference, by cashier                                                         | Date                          | Super Admin, Admin                      |
+| Stock                       | Current stock, value, low stock, wastage, consumption                                                    | Date, item kind               | Super Admin, Admin, Store               |
+| Customer credit             | Balance and ageing per customer                                                                          | As of date                    | Super Admin, Admin                      |
+| Supplier payable            | Balance per supplier                                                                                     | As of date                    | Super Admin, Admin                      |
+| Staff                       | Attendance, salary sheet, sales per waiter                                                               | Month                         | Super Admin, Admin                      |
+| Void / discount / audit     | Every void, discount and edit with user and reason                                                       | Date range, user              | Super Admin                             |
+| Profit and loss             | Income, cost of goods, expenses, net profit                                                              | BS period                     | Super Admin                             |
+| Balance sheet               | Assets, liabilities, equity                                                                              | As of date                    | Super Admin                             |
+| VAT sales and purchase book | IRD-format sales and purchase registers (if VAT registered)                                              | Month                         | Super Admin                             |
 
 **Also in reports:** accounts payable and receivable ageing (M15), cash flow statement, hourly sales, category-wise revenue, slow-moving items, food cost %, wastage %, staff-wise sales, purchase trend, monthly profit comparison, takeaway vs dine-in vs cabin sales, and sales and purchase returns. Date filters include quarter.
 
@@ -376,17 +376,17 @@ Every report filters by BS date range (today, yesterday, this week, this month, 
 
 About 35 tables in 8 groups. Every money and stock table stores both a BS date and an AD date, plus created\_by and timestamps. Paid bills and posted ledger rows are never hard-deleted.
 
-| Group | Main entities |
-| --- | --- |
-| Access | users, roles, permissions, role\_permissions, devices, audit\_logs |
-| Floor | zones, seats (type: table / cabin / counter / virtual, qr\_token), reservations |
-| Menu | menu\_categories, menu\_items, item\_modifiers, recipes (menu\_item → stock\_item, qty per plate) |
-| Orders | orders (seat, type, waiter, status), order\_items (qty, price, notes, status), kots, kot\_items |
-| Billing | bills (number, fiscal year, subtotal, discount, service, VAT, total, status), bill\_payments (mode, amount), customers, customer\_ledger, loyalty\_transactions |
-| Stock | stock\_items (kind: ingredient / resale / asset), units, unit\_conversions, suppliers, purchase\_orders, purchase\_order\_items, purchases, purchase\_items, supplier\_ledger, stock\_movements (in / out / wastage / adjust / sale), stock\_counts |
-| Money | accounts (cash, bank, wallet), transactions (account, in / out, source type and id), transfers, expense\_categories, expenses, recurring\_expenses, day\_closes |
-| Accounting | ledger\_accounts (chart of accounts), journal\_entries, journal\_lines (auto-posted from every source) |
-| HR | staff (links to user), shifts, attendance, leaves, salary\_structures, advances, payrolls, payroll\_lines |
+| Group      | Main entities                                                                                                                                                                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Access     | users, roles, permissions, role\_permissions, devices, audit\_logs                                                                                                                                                                                  |
+| Floor      | zones, seats (type: table / cabin / counter / virtual, qr\_token), reservations                                                                                                                                                                     |
+| Menu       | menu\_categories, menu\_items, item\_modifiers, recipes (menu\_item → stock\_item, qty per plate)                                                                                                                                                   |
+| Orders     | orders (seat, type, waiter, status), order\_items (qty, price, notes, status), kots, kot\_items                                                                                                                                                     |
+| Billing    | bills (number, fiscal year, subtotal, discount, service, VAT, total, status), bill\_payments (mode, amount), customers, customer\_ledger, loyalty\_transactions                                                                                     |
+| Stock      | stock\_items (kind: ingredient / resale / asset), units, unit\_conversions, suppliers, purchase\_orders, purchase\_order\_items, purchases, purchase\_items, supplier\_ledger, stock\_movements (in / out / wastage / adjust / sale), stock\_counts |
+| Money      | accounts (cash, bank, wallet), transactions (account, in / out, source type and id), transfers, expense\_categories, expenses, recurring\_expenses, day\_closes                                                                                     |
+| Accounting | ledger\_accounts (chart of accounts), journal\_entries, journal\_lines (auto-posted from every source)                                                                                                                                              |
+| HR         | staff (links to user), shifts, attendance, leaves, salary\_structures, advances, payrolls, payroll\_lines                                                                                                                                           |
 
 **Additional tables:** order\_status\_history, payment\_allocations (split payments), sales\_returns, purchase\_returns, stock\_batches, stock\_adjustments, payables, receivables, payment\_settlements (one payment against many bills), number\_sequences (bill, token, PO numbers), printer\_settings, business\_settings and sync\_queue (offline device transactions).
 
@@ -412,28 +412,28 @@ The system must run in Nepali conditions: BS dates, Nepali payment wallets, IRD 
 
 ### 8.2 Non-functional
 
-| Area | Requirement |
-| --- | --- |
-| Devices | Works on Android tablets, phones, iPad and desktop browser; installable PWA |
-| Speed | Order screen opens in under 2 s; KOT reaches the kitchen screen in under 2 s on local network |
-| Offline | Order taking and billing keep working on the local network if internet drops; data syncs when back |
-| Real time | Floor map, KDS and waiter notifications update live (websockets) |
-| Security | Hashed passwords and PINs, role checks on every API call, HTTPS, auto-logout on shared tablets, audit log |
-| Backup | Daily automatic database backup off the server, kept 30 days; one-click restore by Super Admin |
-| Data integrity | Bills and ledger rows cannot be deleted, only cancelled or reversed with reason |
-| Scale | One outlet now; data model allows more outlets later (outlet\_id on main tables) |
+| Area           | Requirement                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| Devices        | Works on Android tablets, phones, iPad and desktop browser; installable PWA                               |
+| Speed          | Order screen opens in under 2 s; KOT reaches the kitchen screen in under 2 s on local network             |
+| Offline        | Order taking and billing keep working on the local network if internet drops; data syncs when back        |
+| Real time      | Floor map, KDS and waiter notifications update live (websockets)                                          |
+| Security       | Hashed passwords and PINs, role checks on every API call, HTTPS, auto-logout on shared tablets, audit log |
+| Backup         | Daily automatic database backup off the server, kept 30 days; one-click restore by Super Admin            |
+| Data integrity | Bills and ledger rows cannot be deleted, only cancelled or reversed with reason                           |
+| Scale          | One outlet now; data model allows more outlets later (outlet\_id on main tables)                          |
 
 ### 8.3 Hardware
 
-| Item | Qty (proposed) | Purpose |
-| --- | --- | --- |
-| 80 mm thermal printer (ESC/POS, LAN or USB) | 1 | Bills at the counter |
-| 80 mm thermal printer | 1–2 | Kitchen KOT and bar KOT |
-| Counter PC or tablet with cash drawer | 1 | POS, day close |
-| Android tablets or staff phones | 2–4 | Waiter ordering |
-| Kitchen screen (TV or tablet) | 1 | KDS |
-| Wi-Fi router with good garden coverage | 1–2 | Outdoor tables and cabins are far from the counter |
-| Printed QR table cards | One per seat | QR menu |
+| Item                                        | Qty (proposed) | Purpose                                            |
+| ------------------------------------------- | -------------- | -------------------------------------------------- |
+| 80 mm thermal printer (ESC/POS, LAN or USB) | 1              | Bills at the counter                               |
+| 80 mm thermal printer                       | 1–2            | Kitchen KOT and bar KOT                            |
+| Counter PC or tablet with cash drawer       | 1              | POS, day close                                     |
+| Android tablets or staff phones             | 2–4            | Waiter ordering                                    |
+| Kitchen screen (TV or tablet)               | 1              | KDS                                                |
+| Wi-Fi router with good garden coverage      | 1–2            | Outdoor tables and cabins are far from the counter |
+| Printed QR table cards                      | One per seat   | QR menu                                            |
 
 Printing from a browser to thermal printers needs a small local print bridge (e.g. QZ Tray or a tiny local print service) on the counter PC.
 
@@ -451,11 +451,11 @@ Old sheet data is imported as history, and the system goes live in 3 phases so t
 
 ### 9.2 Phases
 
-| Phase | Modules | Outcome |
-| --- | --- | --- |
-| 1. Core POS | Auth and roles, floor and seats, menu, orders, KOT/KDS, billing, thermal print, payments, day close, QR menu (view only), daily sales and top items reports | Restaurant stops typing daily sales by hand |
-| 2. Money and stock | Purchase, suppliers, inventory, recipes, expenses, cash flow, bank and wallets, customer credit, kitchen/bar P/L, item profit, migration of old sheets | Real profit and cash position |
-| 3. HR and accounts | Staff, attendance, payroll, auto ledger, P/L, balance sheet, IRD books, QR self-ordering, payment gateways | Full back office |
+| Phase              | Modules                                                                                                                                                     | Outcome                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1. Core POS        | Auth and roles, floor and seats, menu, orders, KOT/KDS, billing, thermal print, payments, day close, QR menu (view only), daily sales and top items reports | Restaurant stops typing daily sales by hand |
+| 2. Money and stock | Purchase, suppliers, inventory, recipes, expenses, cash flow, bank and wallets, customer credit, kitchen/bar P/L, item profit, migration of old sheets      | Real profit and cash position               |
+| 3. HR and accounts | Staff, attendance, payroll, auto ledger, P/L, balance sheet, IRD books, QR self-ordering, payment gateways                                                  | Full back office                            |
 
 ### 9.3 Open questions for WoodStone
 
@@ -479,39 +479,39 @@ The project follows the ISO/IEC/IEEE 29148 requirements structure, OWASP securit
 
 ### 9A.1 Requirements standard (ISO/IEC/IEEE 29148)
 
-| 29148 element | Where it is in this document | Status |
-| --- | --- | --- |
-| Purpose and scope | Section 1 | Done |
-| Current system / context | Section 2 | Done |
-| Stakeholders and user classes | Section 4 | Done |
-| Functional requirements with unique IDs | Section 5 (FR-x.y) | Done |
-| Data requirements | Section 7 | Done |
-| Non-functional requirements | Section 8.2 | Done |
-| Constraints (legal, hardware, local) | Sections 8.1, 8.3 | Done |
-| Priority per requirement | 9A.2 (MoSCoW) | Done |
-| Acceptance criteria | 9A.3 | Done |
-| Open issues | Section 9.3 | Waiting on client |
+| 29148 element                           | Where it is in this document | Status            |
+| --------------------------------------- | ---------------------------- | ----------------- |
+| Purpose and scope                       | Section 1                    | Done              |
+| Current system / context                | Section 2                    | Done              |
+| Stakeholders and user classes           | Section 4                    | Done              |
+| Functional requirements with unique IDs | Section 5 (FR-x.y)           | Done              |
+| Data requirements                       | Section 7                    | Done              |
+| Non-functional requirements             | Section 8.2                  | Done              |
+| Constraints (legal, hardware, local)    | Sections 8.1, 8.3            | Done              |
+| Priority per requirement                | 9A.2 (MoSCoW)                | Done              |
+| Acceptance criteria                     | 9A.3                         | Done              |
+| Open issues                             | Section 9.3                  | Waiting on client |
 
 ### 9A.2 Priorities (MoSCoW)
 
-| Module | Priority | Phase |
-| --- | --- | --- |
-| M1 Floor, tables, cabins | Must | 1 |
-| M2 Orders (tablet/mobile) | Must | 1 |
-| M3 Kitchen and bar KOT/KDS | Must | 1 |
-| M4 POS billing and thermal print | Must | 1 |
-| M5 Menu + QR menu (view) | Must | 1 |
-| M14 Settings, users, roles | Must | 1 |
-| M6 Purchase and purchase orders | Must | 2 |
-| M7 Inventory and recipes | Must | 2 |
-| M8 Expenses and operating cost | Must | 2 |
-| M9 Cash flow, bank, wallets | Must | 2 |
-| M10 Customers, loyalty, credit | Should | 2 |
-| M11 Kitchen/bar P/L, item profit | Should | 2 |
-| M12 HR and payroll | Should | 3 |
-| M13 Ledger, P/L, balance sheet | Should | 3 |
-| QR self-ordering, payment gateways | Could | 3 |
-| Multi-outlet, mobile native apps | Won't (this release) | Later |
+| Module                             | Priority             | Phase |
+| ---------------------------------- | -------------------- | ----- |
+| M1 Floor, tables, cabins           | Must                 | 1     |
+| M2 Orders (tablet/mobile)          | Must                 | 1     |
+| M3 Kitchen and bar KOT/KDS         | Must                 | 1     |
+| M4 POS billing and thermal print   | Must                 | 1     |
+| M5 Menu + QR menu (view)           | Must                 | 1     |
+| M14 Settings, users, roles         | Must                 | 1     |
+| M6 Purchase and purchase orders    | Must                 | 2     |
+| M7 Inventory and recipes           | Must                 | 2     |
+| M8 Expenses and operating cost     | Must                 | 2     |
+| M9 Cash flow, bank, wallets        | Must                 | 2     |
+| M10 Customers, loyalty, credit     | Should               | 2     |
+| M11 Kitchen/bar P/L, item profit   | Should               | 2     |
+| M12 HR and payroll                 | Should               | 3     |
+| M13 Ledger, P/L, balance sheet     | Should               | 3     |
+| QR self-ordering, payment gateways | Could                | 3     |
+| Multi-outlet, mobile native apps   | Won't (this release) | Later |
 
 ### 9A.3 Acceptance criteria (definition of done per module)
 
@@ -541,15 +541,15 @@ Each area below names the exact choice the developers must use.
 
 #### 2. Code style
 
-| Layer | Standard | Tooling and rules |
-| --- | --- | --- |
-| Backend (PHP) | PSR-12 with Laravel preset | Laravel Pint; declare(strict\_types=1); typed properties and return types; PHP enums for statuses (OrderStatus, BillStatus); readonly DTOs between layers; one Action class per use case with a handle() method |
-| Naming (backend) | Laravel conventions | Classes StudlyCase, methods camelCase, DB tables plural snake\_case, columns snake\_case, routes kebab-case |
-| Frontend (Vue) | Vue 3 official style guide (priority A + B) | Composition API with script setup lang="ts"; components PascalCase; composables useXxx; Pinia stores per domain; no any types |
-| Lint / format (frontend) | ESLint + Prettier | eslint-plugin-vue (recommended), @typescript-eslint, prettier-plugin-tailwindcss; 2-space indent, single quotes, semicolons on |
-| CSS | Tailwind CSS 3 | Design tokens in tailwind.config; no inline styles; dark mode for KDS |
-| Language | i18n from day one | Laravel lang files and vue-i18n, English and Nepali |
-| Commits | Conventional Commits | feat(billing): split payment FR-4.2 |
+| Layer                    | Standard                                    | Tooling and rules                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend (PHP)            | PSR-12 with Laravel preset                  | Laravel Pint; declare(strict\_types=1); typed properties and return types; PHP enums for statuses (OrderStatus, BillStatus); readonly DTOs between layers; one Action class per use case with a handle() method |
+| Naming (backend)         | Laravel conventions                         | Classes StudlyCase, methods camelCase, DB tables plural snake\_case, columns snake\_case, routes kebab-case                                                                                                     |
+| Frontend (Vue)           | Vue 3 official style guide (priority A + B) | Composition API with script setup lang="ts"; components PascalCase; composables useXxx; Pinia stores per domain; no any types                                                                                   |
+| Lint / format (frontend) | ESLint + Prettier                           | eslint-plugin-vue (recommended), @typescript-eslint, prettier-plugin-tailwindcss; 2-space indent, single quotes, semicolons on                                                                                  |
+| CSS                      | Tailwind CSS 3                              | Design tokens in tailwind.config; no inline styles; dark mode for KDS                                                                                                                                           |
+| Language                 | i18n from day one                           | Laravel lang files and vue-i18n, English and Nepali                                                                                                                                                             |
+| Commits                  | Conventional Commits                        | feat(billing): split payment FR-4.2                                                                                                                                                                             |
 
 #### 3. Static analysis
 
@@ -584,18 +584,18 @@ Each area below names the exact choice the developers must use.
 
 #### 6. Security (OWASP Top 10 2021 + ASVS 4.0 Level 2)
 
-| OWASP risk | Control in WoodStone |
-| --- | --- |
-| A01 Broken access control | Policy on every route, deny by default, outlet scoping, permission matrix tests |
-| A02 Cryptographic failures | HTTPS only (HSTS), argon2id for passwords and PINs, encrypted casts for citizenship number and phone of staff |
-| A03 Injection | Eloquent / bound queries, FormRequest validation, Vue and Blade auto-escaping |
-| A04 Insecure design | Approval PIN for voids and discounts, append-only money tables, audit log |
-| A05 Security misconfiguration | APP\_DEBUG off in production, security headers (CSP, X-Frame-Options, X-Content-Type-Options), no default credentials |
-| A06 Vulnerable components | composer/npm audit in CI, monthly dependency updates |
-| A07 Auth failures | 6-digit PIN with lockout after 5 tries, TOTP 2FA for Super Admin, 15-minute idle logout on shared tablets, secure HttpOnly SameSite cookies |
-| A08 Integrity failures | Signed Docker images from CI only, idempotency keys, locked dependency files |
-| A09 Logging failures | Audit log for money actions and logins, alerts on repeated failed logins |
-| A10 SSRF | No user-supplied URLs fetched by the server |
+| OWASP risk                    | Control in WoodStone                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| A01 Broken access control     | Policy on every route, deny by default, outlet scoping, permission matrix tests                                                             |
+| A02 Cryptographic failures    | HTTPS only (HSTS), argon2id for passwords and PINs, encrypted casts for citizenship number and phone of staff                               |
+| A03 Injection                 | Eloquent / bound queries, FormRequest validation, Vue and Blade auto-escaping                                                               |
+| A04 Insecure design           | Approval PIN for voids and discounts, append-only money tables, audit log                                                                   |
+| A05 Security misconfiguration | APP\_DEBUG off in production, security headers (CSP, X-Frame-Options, X-Content-Type-Options), no default credentials                       |
+| A06 Vulnerable components     | composer/npm audit in CI, monthly dependency updates                                                                                        |
+| A07 Auth failures             | 6-digit PIN with lockout after 5 tries, TOTP 2FA for Super Admin, 15-minute idle logout on shared tablets, secure HttpOnly SameSite cookies |
+| A08 Integrity failures        | Signed Docker images from CI only, idempotency keys, locked dependency files                                                                |
+| A09 Logging failures          | Audit log for money actions and logins, alerts on repeated failed logins                                                                    |
+| A10 SSRF                      | No user-supplied URLs fetched by the server                                                                                                 |
 
 Also: receipt photo uploads checked for type and size and stored on a private disk; QR tokens are random 32 characters, never sequential; secrets only in .env or a vault, never in git; OWASP ZAP baseline scan on staging before every release.
 
@@ -650,12 +650,12 @@ Also: receipt photo uploads checked for type and size and stored on a private di
 
 #### 13. Environments
 
-| Environment | Where | Data | Notes |
-| --- | --- | --- | --- |
-| Local | Developer Mac, Docker Compose (nginx, php-fpm, PostgreSQL, Redis, Reverb, queue worker, Mailpit) | Seeded demo data | APP\_DEBUG on, Telescope on |
-| Staging | Cloud VPS, staging subdomain | Anonymised copy of production | Same Docker image as production; client testing |
-| Production | Cloud VPS (e.g. NepalHost), Docker, Nginx, Let's Encrypt TLS | Live | APP\_DEBUG off, Telescope off |
-| Restaurant edge | Counter PC on restaurant Wi-Fi | Print jobs, offline queue | Print bridge, UPS for router and printer |
+| Environment     | Where                                                                                            | Data                          | Notes                                           |
+| --------------- | ------------------------------------------------------------------------------------------------ | ----------------------------- | ----------------------------------------------- |
+| Local           | Developer Mac, Docker Compose (nginx, php-fpm, PostgreSQL, Redis, Reverb, queue worker, Mailpit) | Seeded demo data              | APP\_DEBUG on, Telescope on                     |
+| Staging         | Cloud VPS, staging subdomain                                                                     | Anonymised copy of production | Same Docker image as production; client testing |
+| Production      | Cloud VPS (e.g. NepalHost), Docker, Nginx, Let's Encrypt TLS                                     | Live                          | APP\_DEBUG off, Telescope off                   |
+| Restaurant edge | Counter PC on restaurant Wi-Fi                                                                   | Print jobs, offline queue     | Print bridge, UPS for router and printer        |
 
 #### 14. Monitoring
 
@@ -702,12 +702,14 @@ You are building "WoodStone RMS", a restaurant management system for WoodStone, 
 Read the requirements document (Sections 1-9) before writing code. Follow its requirement IDs (FR-x.y) and name them in commit messages.
 
 STACK
+
 - Laravel 11 (PHP 8.3), PostgreSQL 16 (recommended) or MySQL 8, Redis, Laravel Reverb for websockets, Sanctum auth.
 - Admin/back office: Filament 3 (Livewire 3 + Tailwind).
 - Waiter, POS and KDS screens: Vue 3 + TypeScript + Inertia + Pinia as an installable PWA, touch-first, works on tablets and phones.
 - Docker Compose for local and production. Daily DB backup job.
 
 GLOBAL RULES
+
 - Bikram Sambat dates in the UI and reports (use a BS<->AD converter library); store both bs_date and ad_date. Fiscal year Shrawan-Asar.
 - Currency NPR, 2 decimals, optional Nepali grouping.
 - Three login levels: Super Admin, Admin, Staff. Staff roles seeded: Cashier, Waiter, Kitchen, Bartender, Store keeper. Use spatie/laravel-permission; seed the permission matrix from Section 4.1. Staff log in with username + PIN on shared devices, auto-logout after idle.
@@ -717,6 +719,7 @@ GLOBAL RULES
 - Seed demo data: zones Garden (G1-G8 tables), Cabin row (C1-C3 cabins), Indoor (H1-H4 tables, C4 cabin), BAR counter, TA takeaway; a sample menu (momo, chowmein, chicken chilli, french fries, wings, sukuti, popcorn, tea, coke, sprite, beer, cigarettes).
 
 PHASE 1 - CORE POS (build now)
+
 1. Auth, roles, permissions, PIN login, audit log.
 2. Floor: zones, seats (table/cabin/counter/virtual), live floor map with status colours, merge, move, split, reservations.
 3. Menu: categories, items, modifiers, station (kitchen/bar), availability, photos.
@@ -733,6 +736,7 @@ PHASE 2 (after review): purchase orders with goods receiving, purchase and suppl
 PHASE 3 (after review): staff, shifts, PIN attendance, leave, advances, payroll and payslips, automatic double-entry ledger, P/L, balance sheet, IRD VAT sales/purchase books, QR self-ordering with staff approval, payment gateway integration.
 
 DEVELOPMENT STANDARDS (Section 9A, mandatory)
+
 - Modular monolith, service/action classes, form requests, policies; no logic in controllers.
 - PSR-12 (Pint), Larastan level 6+, ESLint/Prettier, REST /api/v1 with OpenAPI 3 spec.
 - Money DECIMAL(12,2); bills, payments, stock and ledger rows append-only; FK + indexes.
@@ -742,6 +746,7 @@ DEVELOPMENT STANDARDS (Section 9A, mandatory)
 - Each module is done only when it meets the acceptance criteria in 9A.3.
 
 WAY OF WORKING
+
 - Start with the database migrations and seeders for Phase 1, then backend services and tests for billing totals, then screens.
 - Keep one simple feature test per module; do not over-test.
 - After Phase 1, stop, list what was built against the FR IDs, and wait for approval.

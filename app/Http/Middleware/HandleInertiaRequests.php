@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Support\TerminalContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,9 +41,46 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $this->sharedUser($request->user()),
             ],
+            'terminal' => $this->sharedTerminal($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * @return array{id: int, name: string}|null
+     */
+    private function sharedTerminal(Request $request): ?array
+    {
+        $terminal = app(TerminalContext::class)->current($request);
+
+        return $terminal === null ? null : ['id' => $terminal->id, 'name' => $terminal->name];
+    }
+
+    /**
+     * Only the fields the UI needs; never the whole model.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function sharedUser(mixed $user): ?array
+    {
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role->value,
+            'role_label' => $user->role->label(),
+            'permissions' => $user->permissionValues(),
+            'has_pin' => $user->hasPin(),
+            'can_use_pin' => $user->role->canUsePin(),
+            'two_factor_enabled' => $user->two_factor_confirmed_at !== null,
         ];
     }
 }

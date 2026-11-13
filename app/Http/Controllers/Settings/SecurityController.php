@@ -1,11 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
+use App\Http\Requests\Settings\PinUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Models\User;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,11 +24,11 @@ class SecurityController extends Controller
      */
     public function edit(TwoFactorAuthenticationRequest $request): Response
     {
+        /** @var User $user */
+        $user = $request->user();
+
         $props = [
-            /* @chisel-2fa */
             'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
-            /* @end-chisel-2fa */
-            /* @chisel-passkeys */
             'canManagePasskeys' => Features::canManagePasskeys(),
             'passkeys' => Features::canManagePasskeys()
                 ? $request->user()
@@ -40,18 +46,21 @@ class SecurityController extends Controller
                     ->values()
                     ->all()
                 : [],
-            /* @end-chisel-passkeys */
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'mustChangePassword' => $user->must_change_password,
+            'pin' => [
+                'canUse' => $user->role->canUsePin() && $user->two_factor_confirmed_at === null,
+                'hasPin' => $user->hasPin(),
+                'locked' => $user->pinIsLocked(),
+            ],
         ];
 
-        /* @chisel-2fa */
         if (Features::canManageTwoFactorAuthentication()) {
             $request->ensureStateIsValid();
 
             $props['twoFactorEnabled'] = $request->user()->hasEnabledTwoFactorAuthentication();
             $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
-        /* @end-chisel-2fa */
 
         return Inertia::render('settings/Security', $props);
     }
@@ -61,11 +70,52 @@ class SecurityController extends Controller
      */
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
-        $request->user()->update([
+        $user = $request->user();
+        $user->forceFill([
             'password' => $request->password,
-        ]);
+            'must_change_password' => false,
+        ])->save();
+
+        Audit::record('user.password_changed', $user);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+
+        return back();
+    }
+
+    /**
+     * Set or change the user's own quick PIN (needs the current password).
+     */
+    public function updatePin(PinUpdateRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $user->forceFill([
+            'pin' => (string) $request->string('pin'),
+            'pin_set_at' => now(),
+            'pin_failed_attempts' => 0,
+            'pin_locked_at' => null,
+        ])->save();
+
+        Audit::record('user.pin_set', $user);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Quick PIN saved.')]);
+
+        return back();
+    }
+
+    /**
+     * Remove the user's own quick PIN.
+     */
+    public function destroyPin(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $user->forceFill(['pin' => null, 'pin_set_at' => null, 'pin_failed_attempts' => 0, 'pin_locked_at' => null])->save();
+
+        Audit::record('user.pin_removed', $user);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Quick PIN removed.')]);
 
         return back();
     }

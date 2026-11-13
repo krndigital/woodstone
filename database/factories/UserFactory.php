@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -12,46 +15,57 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
+            'username' => Str::lower(fake()->unique()->userName()).fake()->unique()->numberBetween(10, 99999),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'role' => Role::Cashier,
+            'is_active' => true,
+            'must_change_password' => false,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            /* @chisel-2fa */
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
-            /* @end-chisel-2fa */
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function role(Role $role): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => $role]);
+    }
+
+    public function superAdmin(): static
+    {
+        return $this->role(Role::SuperAdmin);
+    }
+
+    public function admin(): static
+    {
+        return $this->role(Role::Admin);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => ['is_active' => false]);
+    }
+
+    public function withPin(string $pin = '2580'): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'pin' => Hash::make($pin),
+            'pin_set_at' => now(),
         ]);
     }
 
-    /* @chisel-2fa */
-    /**
-     * Indicate that the model has two-factor authentication configured.
-     */
     public function withTwoFactor(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -60,5 +74,4 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
-    /* @end-chisel-2fa */
 }

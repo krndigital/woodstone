@@ -6,6 +6,7 @@ Restaurant management system for Woodstone Restaurant & Cafe, Butwal (Softechpar
 - Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md) · Requirements: [`docs/requirements.md`](docs/requirements.md)
 
 ## Run locally
+
 ```bash
 composer setup   # install, .env, key, migrate, build
 composer dev     # app + vite + queue
