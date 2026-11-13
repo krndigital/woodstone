@@ -45,9 +45,10 @@ enum Role: string
             self::Cashier => [
                 Permission::UsePos, Permission::TakePayment, Permission::GiveDiscount,
                 Permission::ManageDues, Permission::CreateExpense,
+                Permission::ViewMenu, Permission::SetItemAvailability,
             ],
-            self::Waiter => [Permission::UsePos],
-            self::Kitchen, self::Bartender => [Permission::ViewKitchen],
+            self::Waiter => [Permission::UsePos, Permission::ViewMenu],
+            self::Kitchen, self::Bartender => [Permission::ViewKitchen, Permission::ViewMenu, Permission::SetItemAvailability],
             self::StoreKeeper => [Permission::ManageStock, Permission::CreateExpense],
         };
     }

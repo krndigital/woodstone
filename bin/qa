@@ -10,7 +10,9 @@ grep -q '^APP_KEY=base64' .env || php artisan key:generate
 [ -f database/database.sqlite ] || touch database/database.sqlite
 [ -d node_modules ] || npm install
 
-echo "==> Fresh local database with demo users"
+php artisan storage:link >/dev/null 2>&1 || true
+
+echo "==> Fresh local database with demo users and menu"
 php artisan migrate:fresh --seed --force
 
 echo "==> CI checks (lint, Larastan, vue-tsc, tests)"

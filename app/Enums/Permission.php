@@ -19,6 +19,8 @@ enum Permission: string
     case ManageDues = 'dues.manage';
     case CreateExpense = 'expenses.create';
     case ManageStock = 'stock.manage';
+    case ViewMenu = 'menu.view';
+    case SetItemAvailability = 'menu.availability';
     case ManageMenu = 'menu.manage';
     case ViewReports = 'reports.view';
     case ManageStaff = 'staff.manage';
@@ -38,6 +40,8 @@ enum Permission: string
             self::ManageDues => 'Put bill on due, receive dues',
             self::CreateExpense => 'Add expenses',
             self::ManageStock => 'Stock and purchase orders',
+            self::ViewMenu => 'See menu and prices',
+            self::SetItemAvailability => 'Mark items sold out / back',
             self::ManageMenu => 'Edit menu and prices',
             self::ViewReports => 'See reports and profit',
             self::ManageStaff => 'Staff and payroll',

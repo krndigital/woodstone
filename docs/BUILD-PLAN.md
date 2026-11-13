@@ -29,24 +29,24 @@ Sources: `docs/requirements.md` (FR IDs), `docs/DECISIONS.md` (wins on conflict)
 
 ## Steps
 
-| Step | Scope                                                                                                                                                             | Main FR / decisions    | Status |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------ |
-| 0    | Baseline: Laravel 13 + Vue starter, CI (SQLite + PostgreSQL + audits), docs                                                                                       | 9A                     | ✅     |
-| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | 🔨     |
-| 2    | Settings: restaurant profile, fiscal year (BS), bill numbering, VAT/service 0%, discount limit, payment methods, printers                                         | FR-14, D-02, D-05      |        |
-| 3    | Floor: zones, tables, cabins, statuses, move/merge, reservations                                                                                                  | §3, FR-1               |        |
-| 4    | Menu: categories, items, price/cost, images, availability, stations                                                                                               | FR-3                   |        |
-| 5    | POS orders + KOT: open order, add items, send KOT, void with reason + PIN, takeaway/delivery, hold                                                                | FR-2                   |        |
-| 6    | Kitchen & bar display (realtime, Reverb)                                                                                                                          | FR-5                   |        |
-| 7    | Billing: discount %/Rs, payments (cash, manual QR, card, due), split by amount/items, bill print 80 mm, reprint COPY                                              | FR-4, D-03, D-05, D-07 |        |
-| 8    | Customers, groups & dues ledger: receive, move due, limits                                                                                                        | FR-10, M15, D-07       |        |
-| 9    | Stock & purchase: items, recipes, stock movements, POs, suppliers                                                                                                 | FR-6/7                 |        |
-| 10   | Cash book, expenses, payables & receivables, day open/close                                                                                                       | FR-8/9, M15            |        |
-| 11   | Reports + Excel/PDF export                                                                                                                                        | §6, D-08               |        |
-| 12   | Owner dashboard (live tables, charts, filters)                                                                                                                    | FR-11                  |        |
-| 13   | Staff, attendance, payroll                                                                                                                                        | FR-12                  |        |
-| 14   | Waiter phone app, guest QR menu, call waiter                                                                                                                      | M16                    |        |
-| 15   | Hardening: backups, monitoring, deploy to server, load test, UAT with client                                                                                      | 9A                     |        |
+| Step | Scope                                                                                                                                                             | Main FR / decisions    | Status  |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------- |
+| 0    | Baseline: Laravel 13 + Vue starter, CI (SQLite + PostgreSQL + audits), docs                                                                                       | 9A                     | ✅      |
+| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | PR open |
+| 2    | **Menu**: categories (one sub-level), items, price/cost/margin, photos, sold-out, time windows, extras, stations                                                  | FR-3                   | 🔨      |
+| 3    | Floor: zones, tables, cabins, statuses, move/merge, reservations                                                                                                  | §3, FR-1               |         |
+| 4    | Settings: restaurant profile, fiscal year (BS), bill numbering, VAT/service 0%, discount limit, payment methods, printers                                         | FR-14, D-02, D-05      |         |
+| 5    | POS orders + KOT: open order, add items, send KOT, void with reason + PIN, takeaway/delivery, hold                                                                | FR-2                   |         |
+| 6    | Kitchen & bar display (realtime, Reverb)                                                                                                                          | FR-5                   |         |
+| 7    | Billing: discount %/Rs, payments (cash, manual QR, card, due), split by amount/items, bill print 80 mm, reprint COPY                                              | FR-4, D-03, D-05, D-07 |         |
+| 8    | Customers, groups & dues ledger: receive, move due, limits                                                                                                        | FR-10, M15, D-07       |         |
+| 9    | Stock & purchase: items, recipes, stock movements, POs, suppliers                                                                                                 | FR-6/7                 |         |
+| 10   | Cash book, expenses, payables & receivables, day open/close                                                                                                       | FR-8/9, M15            |         |
+| 11   | Reports + Excel/PDF export                                                                                                                                        | §6, D-08               |         |
+| 12   | Owner dashboard (live tables, charts, filters)                                                                                                                    | FR-11                  |         |
+| 13   | Staff, attendance, payroll                                                                                                                                        | FR-12                  |         |
+| 14   | Waiter phone app, guest QR menu, call waiter                                                                                                                      | M16                    |         |
+| 15   | Hardening: backups, monitoring, deploy to server, load test, UAT with client                                                                                      | 9A                     |         |
 
 ## Definition of done (per step)
 
