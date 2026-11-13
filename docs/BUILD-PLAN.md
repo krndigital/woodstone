@@ -32,7 +32,7 @@ Sources: `docs/requirements.md` (FR IDs), `docs/DECISIONS.md` (wins on conflict)
 | Step | Scope                                                                                                                                                             | Main FR / decisions    | Status  |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------- |
 | 0    | Baseline: Laravel 13 + Vue starter, CI (SQLite + PostgreSQL + audits), docs                                                                                       | 9A                     | ✅      |
-| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | PR open |
+| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | merged  |
 | 2    | **Menu**: categories (one sub-level), items, price/cost/margin, photos, sold-out, time windows, extras, stations                                                  | FR-3                   | 🔨      |
 | 3    | Floor: zones, tables, cabins, statuses, move/merge, reservations                                                                                                  | §3, FR-1               |         |
 | 4    | Settings: restaurant profile, fiscal year (BS), bill numbering, VAT/service 0%, discount limit, payment methods, printers                                         | FR-14, D-02, D-05      |         |
