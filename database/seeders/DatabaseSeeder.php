@@ -32,11 +32,11 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($demo as [$name, $username, $role, $pin]) {
-            User::factory()->role($role)->state(array_filter([
+            User::factory()->role($role)->state([
                 'name' => $name,
                 'username' => $username,
                 'email' => $username.'@woodstone.test',
-            ]))->when($pin !== null, fn ($f) => $f->withPin($pin))->create();
+            ])->when($pin !== null, fn ($f) => $f->withPin($pin))->create();
         }
 
         $this->call(MenuSeeder::class);

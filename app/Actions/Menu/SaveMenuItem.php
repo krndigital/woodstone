@@ -44,7 +44,7 @@ final class SaveMenuItem
             /** @var list<array{name: string, price?: string|null}> $modifiers */
             $modifiers = $data['modifiers'] ?? [];
             $item->modifiers()->delete();
-            foreach (array_values($modifiers) as $i => $modifier) {
+            foreach ($modifiers as $i => $modifier) {
                 $item->modifiers()->create([
                     'name' => $modifier['name'],
                     'price' => $modifier['price'] ?? '0',

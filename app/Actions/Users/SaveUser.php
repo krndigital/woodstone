@@ -41,7 +41,7 @@ final class SaveUser
 
             if ($creating) {
                 $user->forceFill([
-                    'password' => (string) $data['password'],
+                    'password' => (string) ($data['password'] ?? ''),
                     'must_change_password' => true,
                     'is_active' => true,
                 ]);

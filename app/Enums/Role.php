@@ -38,10 +38,7 @@ enum Role: string
     {
         return match ($this) {
             self::SuperAdmin => Permission::cases(),
-            self::Admin => array_values(array_filter(
-                Permission::cases(),
-                fn (Permission $p): bool => $p !== Permission::ManageSettings,
-            )),
+            self::Admin => self::allExcept(Permission::ManageSettings),
             self::Cashier => [
                 Permission::UsePos, Permission::TakePayment, Permission::GiveDiscount,
                 Permission::ManageDues, Permission::CreateExpense,
@@ -51,6 +48,21 @@ enum Role: string
             self::Kitchen, self::Bartender => [Permission::ViewKitchen, Permission::ViewMenu, Permission::SetItemAvailability],
             self::StoreKeeper => [Permission::ManageStock, Permission::CreateExpense],
         };
+    }
+
+    /**
+     * @return list<Permission>
+     */
+    private static function allExcept(Permission $excluded): array
+    {
+        $permissions = [];
+        foreach (Permission::cases() as $permission) {
+            if ($permission !== $excluded) {
+                $permissions[] = $permission;
+            }
+        }
+
+        return $permissions;
     }
 
     public function allows(Permission $permission): bool
