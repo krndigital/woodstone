@@ -12,7 +12,7 @@
         <div class="big b">{{ $kot->order->label() }}</div>
     @endif
     <div class="muted">Order #{{ $kot->order->number }} · {{ $kot->order->guests }} guests · {{ $kot->creator->name }}</div>
-    <div class="muted">{{ $kot->created_at?->timezone('Asia/Kathmandu')->format('d M Y, h:i A') }}</div>
+    <div class="muted">{{ $kot->created_at?->timezone('Asia/Kathmandu')->format('h:i A') }} · {{ $kot->created_at ? \App\Support\BsDate::long($kot->created_at) : '' }}</div>
     <hr>
     <table>
         @foreach ($kot->items as $line)

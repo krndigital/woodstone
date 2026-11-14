@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
+use App\Support\BsDate;
 use App\Support\NumberSequence;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,8 +64,9 @@ class SettingsTest extends TestCase
 
     public function test_bill_numbers_are_sequential_per_fiscal_year(): void
     {
-        $this->assertSame('2083/84-00001', NumberSequence::nextBillNumber());
-        $this->assertSame('2083/84-00002', NumberSequence::nextBillNumber());
+        $fy = BsDate::fiscalYear(now())['label'];
+        $this->assertSame($fy.'-00001', NumberSequence::nextBillNumber());
+        $this->assertSame($fy.'-00002', NumberSequence::nextBillNumber());
 
         Settings::save(['fiscal_year_label' => '2084/85'], User::factory()->superAdmin()->create());
         $this->assertSame('2084/85-00001', NumberSequence::nextBillNumber());

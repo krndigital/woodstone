@@ -27,7 +27,16 @@ type AppSettings = {
     fiscal_year_starts_on: string;
 };
 
-const props = defineProps<{ settings: AppSettings }>();
+const props = defineProps<{
+    settings: AppSettings;
+    bsToday: string;
+    currentFiscalYear: { label: string; starts_on: string };
+}>();
+
+function useCurrentFiscalYear(): void {
+    form.fiscal_year_label = props.currentFiscalYear.label;
+    form.fiscal_year_starts_on = props.currentFiscalYear.starts_on;
+}
 
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Settings', href: settingsEdit() }] },
@@ -135,6 +144,21 @@ function save(): void {
                             Bill numbers restart when this changes (Shrawan 1).
                         </p>
                         <InputError :message="form.errors.fiscal_year_label" />
+                        <p class="text-xs text-muted-foreground">
+                            Today is {{ bsToday }} BS · current fiscal year
+                            {{ currentFiscalYear.label }}
+                            <button
+                                v-if="
+                                    form.fiscal_year_label !==
+                                    currentFiscalYear.label
+                                "
+                                type="button"
+                                class="font-semibold text-orange-700 underline"
+                                @click="useCurrentFiscalYear"
+                            >
+                                use it
+                            </button>
+                        </p>
                     </div>
                     <div class="grid gap-2">
                         <Label for="fys">Fiscal year started on</Label>

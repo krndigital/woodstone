@@ -17,7 +17,8 @@
     @if ($bill->order->token)<div class="c" style="font-size:28px;font-weight:bold;margin:4px 0">TOKEN {{ $bill->order->token }}</div>@endif
     <table>
         <tr><td>Bill no</td><td class="r b">{{ $bill->number }}</td></tr>
-        <tr><td>Date</td><td class="r">{{ $at?->format('d M Y, h:i A') }}</td></tr>
+        <tr><td>Date (BS)</td><td class="r">{{ $at ? \App\Support\BsDate::long($at) : '' }}</td></tr>
+        <tr><td>Date (AD)</td><td class="r">{{ $at?->format('d M Y, h:i A') }}</td></tr>
         <tr><td>{{ $bill->order->type->value === 'dine_in' ? 'Table' : 'Order' }}</td><td class="r">{{ $bill->order->label() }}</td></tr>
         <tr><td>Waiter</td><td class="r">{{ $bill->order->waiter->name }}</td></tr>
         <tr><td>Cashier</td><td class="r">{{ $bill->cashier->name }}</td></tr>

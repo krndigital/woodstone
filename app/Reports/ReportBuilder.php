@@ -12,11 +12,13 @@ use App\Models\DayClose;
 use App\Models\Staff;
 use App\Models\StockItem;
 use App\Models\Supplier;
+use App\Support\BsDate;
 use App\Support\CashBook;
 use App\Support\DuesData;
 use App\Support\Money;
 use App\Support\Qty;
 use App\Support\SupplierBalance;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -104,13 +106,13 @@ final class ReportBuilder
             $days[$d]['returns'] += Money::toPaisa((string) $ret->amount);
         }
         ksort($days);
-        $rows = array_values(array_map(fn (array $r): array => [...$r, 'net' => $r['total'] - $r['returns']], $days));
+        $rows = array_values(array_map(fn (array $r): array => [...$r, 'bs' => BsDate::format(CarbonImmutable::parse($r['date'])), 'net' => $r['total'] - $r['returns']], $days));
         $keys = ['bills', 'subtotal', 'discount', 'service', 'vat', 'total', 'cash', 'qr', 'card', 'due', 'returns', 'net'];
 
         return [
-            'columns' => self::cols([['date', 'Date'], ['bills', 'Bills', 'int'], ['subtotal', 'Subtotal', 'money'], ['discount', 'Discount', 'money'], ['service', 'Service', 'money'], ['vat', 'VAT', 'money'], ['total', 'Billed', 'money'], ['cash', 'Cash', 'money'], ['qr', 'QR', 'money'], ['card', 'Card', 'money'], ['due', 'On due', 'money'], ['returns', 'Returns', 'money'], ['net', 'Net sales', 'money']]),
+            'columns' => self::cols([['bs', 'Date (BS)'], ['date', 'Date (AD)'], ['bills', 'Bills', 'int'], ['subtotal', 'Subtotal', 'money'], ['discount', 'Discount', 'money'], ['service', 'Service', 'money'], ['vat', 'VAT', 'money'], ['total', 'Billed', 'money'], ['cash', 'Cash', 'money'], ['qr', 'QR', 'money'], ['card', 'Card', 'money'], ['due', 'On due', 'money'], ['returns', 'Returns', 'money'], ['net', 'Net sales', 'money']]),
             'rows' => $rows,
-            'totals' => self::sum($rows, $keys, 'date'),
+            'totals' => self::sum($rows, $keys, 'bs'),
             'notes' => [],
         ];
     }

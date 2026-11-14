@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SettingsRequest;
 use App\Models\User;
+use App\Support\BsDate;
 use App\Support\Money;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,11 @@ class SettingsController extends Controller
 {
     public function edit(): Response
     {
-        return Inertia::render('admin/Settings', ['settings' => Settings::all()]);
+        return Inertia::render('admin/Settings', [
+            'settings' => Settings::all(),
+            'bsToday' => BsDate::long(now()),
+            'currentFiscalYear' => BsDate::fiscalYear(now()),
+        ]);
     }
 
     public function update(SettingsRequest $request): RedirectResponse

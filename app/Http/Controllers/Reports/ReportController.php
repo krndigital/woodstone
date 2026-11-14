@@ -47,7 +47,7 @@ class ReportController extends Controller
 
         return Inertia::render('reports/Show', [
             'report' => ['key' => $report, 'title' => $meta['title'], 'description' => $meta['description']],
-            'filters' => ['from' => $period->fromDate(), 'to' => $period->toDate()],
+            'filters' => ['from' => $period->fromDate(), 'to' => $period->toDate(), 'bs' => $period->bsLabel()],
             'data' => ReportBuilder::build($report, $period),
         ]);
     }

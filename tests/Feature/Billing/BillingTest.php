@@ -14,6 +14,7 @@ use App\Models\DiningTable;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\BsDate;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -65,7 +66,7 @@ class BillingTest extends TestCase
         ])->assertSessionHasNoErrors()->assertRedirect(route('pos.index'));
 
         $bill = Bill::query()->firstOrFail();
-        $this->assertSame('2083/84-00001', $bill->number);
+        $this->assertSame(BsDate::fiscalYear(now())['label'].'-00001', $bill->number);
         $this->assertSame('1000.00', $bill->total);
         $this->assertSame('0.00', $bill->vat_amount);
         $this->assertSame('0.00', $bill->service_amount);

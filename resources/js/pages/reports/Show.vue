@@ -16,7 +16,7 @@ type Row = Record<string, string | number | null>;
 
 const props = defineProps<{
     report: { key: string; title: string; description: string };
-    filters: { from: string; to: string };
+    filters: { from: string; to: string; bs: string };
     data: {
         columns: Column[];
         rows: Row[];

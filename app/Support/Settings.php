@@ -20,6 +20,8 @@ final class Settings
      */
     public static function defaults(): array
     {
+        $fy = BsDate::fiscalYear(now());
+
         return [
             'restaurant_name' => 'Woodstone Restaurant & Cafe',
             'address' => 'Butwal-08, Sukkhanagar',
@@ -35,8 +37,8 @@ final class Settings
             'default_credit_limit' => '15000.00',
             'auto_print' => true,
             'guest_call_any_status' => false,
-            'fiscal_year_label' => '2083/84',
-            'fiscal_year_starts_on' => '2026-07-17',
+            'fiscal_year_label' => $fy['label'],
+            'fiscal_year_starts_on' => $fy['starts_on'],
         ];
     }
 

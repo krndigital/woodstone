@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Reports;
 
+use App\Support\BsDate;
 use Carbon\CarbonImmutable;
 use Throwable;
 
@@ -49,7 +50,14 @@ final class Period
 
     public function label(): string
     {
-        return $this->fromDate() === $this->toDate() ? $this->from->format('d M Y') : $this->from->format('d M Y').' – '.$this->to->format('d M Y');
+        $ad = $this->fromDate() === $this->toDate() ? $this->from->format('d M Y') : $this->from->format('d M Y').' – '.$this->to->format('d M Y');
+
+        return $this->bsLabel().' BS ('.$ad.')';
+    }
+
+    public function bsLabel(): string
+    {
+        return $this->fromDate() === $this->toDate() ? BsDate::long($this->from) : BsDate::long($this->from).' – '.BsDate::long($this->to);
     }
 
     private static function parse(?string $value): ?CarbonImmutable
