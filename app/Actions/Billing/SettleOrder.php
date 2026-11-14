@@ -47,7 +47,7 @@ final class SettleOrder
     {
         EnsureOrderOpen::check($order);
 
-        return DB::transaction(function () use ($order, $cashier, $discount, $payments, $approval): Bill {
+        return DB::transaction(function () use ($order, $cashier, $discount, $payments, $approval, $customerId): Bill {
             // Lock the order so two cashiers can never bill it twice.
             $order = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
             EnsureOrderOpen::check($order);
