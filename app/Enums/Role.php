@@ -40,11 +40,11 @@ enum Role: string
             self::SuperAdmin => Permission::cases(),
             self::Admin => self::allExcept(Permission::ManageSettings),
             self::Cashier => [
-                Permission::UsePos, Permission::TakePayment, Permission::GiveDiscount,
+                Permission::ViewFloor, Permission::UsePos, Permission::TakePayment, Permission::GiveDiscount,
                 Permission::ManageDues, Permission::CreateExpense,
                 Permission::ViewMenu, Permission::SetItemAvailability,
             ],
-            self::Waiter => [Permission::UsePos, Permission::ViewMenu],
+            self::Waiter => [Permission::ViewFloor, Permission::UsePos, Permission::ViewMenu],
             self::Kitchen, self::Bartender => [Permission::ViewKitchen, Permission::ViewMenu, Permission::SetItemAvailability],
             self::StoreKeeper => [Permission::ManageStock, Permission::CreateExpense],
         };

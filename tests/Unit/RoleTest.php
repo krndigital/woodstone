@@ -28,7 +28,7 @@ class RoleTest extends TestCase
 
     public function test_staff_roles_are_limited(): void
     {
-        $this->assertSame([Permission::UsePos, Permission::ViewMenu], Role::Waiter->permissions());
+        $this->assertSame([Permission::ViewFloor, Permission::UsePos, Permission::ViewMenu], Role::Waiter->permissions());
         $this->assertSame([Permission::ViewKitchen, Permission::ViewMenu, Permission::SetItemAvailability], Role::Kitchen->permissions());
         $this->assertFalse(Role::StoreKeeper->allows(Permission::ViewMenu));
         $this->assertFalse(Role::Cashier->allows(Permission::ManageMenu));

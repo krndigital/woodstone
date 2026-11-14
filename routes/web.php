@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\PinLoginController;
+use App\Http\Controllers\Floor\FloorController;
 use App\Http\Controllers\Menu\MenuCategoryController;
 use App\Http\Controllers\Menu\MenuController;
 use App\Http\Controllers\Menu\MenuItemController;
@@ -30,6 +31,18 @@ Route::middleware('auth')->group(function () {
         Route::put('users/{user}/password', [UserController::class, 'resetPassword'])->middleware('throttle:20,1')->name('users.password');
         Route::delete('users/{user}/pin', [UserController::class, 'clearPin'])->name('users.pin.clear');
         Route::patch('users/{user}/pin/unlock', [UserController::class, 'unlockPin'])->name('users.pin.unlock');
+    });
+
+    // Floor (step 3).
+    Route::middleware('can:floor.view')->group(function () {
+        Route::get('floor', [FloorController::class, 'index'])->name('floor.index');
+        Route::patch('floor/tables/{table}/status', [FloorController::class, 'updateStatus'])->name('floor.tables.status');
+    });
+    Route::middleware('can:floor.manage')->prefix('floor')->name('floor.')->group(function () {
+        Route::post('zones', [FloorController::class, 'storeZone'])->name('zones.store');
+        Route::put('zones/{zone}', [FloorController::class, 'updateZone'])->name('zones.update');
+        Route::post('tables', [FloorController::class, 'storeTable'])->name('tables.store');
+        Route::put('tables/{table}', [FloorController::class, 'updateTable'])->name('tables.update');
     });
 
     // Menu (step 2). Everyone with menu.view sees it; only menu.manage edits; sold-out toggle has its own permission.

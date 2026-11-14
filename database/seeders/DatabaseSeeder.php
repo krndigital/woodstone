@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
             ])->when($pin !== null, fn ($f) => $f->withPin($pin))->create();
         }
 
-        $this->call(MenuSeeder::class);
+        $this->call([MenuSeeder::class, FloorSeeder::class]);
 
         $this->command->info('Demo users and menu created. Password for all: "password". PINs: cashier 2580, waiter 3691, kitchen 4702, bar 5813, store 6924.');
     }

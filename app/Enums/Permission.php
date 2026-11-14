@@ -11,6 +11,8 @@ namespace App\Enums;
 enum Permission: string
 {
     case ViewDashboard = 'dashboard.view';
+    case ViewFloor = 'floor.view';
+    case ManageFloor = 'floor.manage';
     case UsePos = 'pos.use';
     case TakePayment = 'billing.take_payment';
     case GiveDiscount = 'billing.discount';
@@ -32,6 +34,8 @@ enum Permission: string
     {
         return match ($this) {
             self::ViewDashboard => 'See owner dashboard',
+            self::ViewFloor => 'See tables and change table status',
+            self::ManageFloor => 'Set up zones, tables and cabins',
             self::UsePos => 'Take orders and send KOT',
             self::TakePayment => 'Take payment and print bill',
             self::GiveDiscount => 'Give discount (within limit)',

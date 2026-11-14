@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     LayoutGrid,
+    LayoutPanelTop,
     MonitorSmartphone,
     UtensilsCrossed,
     Users,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
+import { index as floorIndex } from '@/routes/floor';
 import { index as menuIndex } from '@/routes/menu';
 import { index as terminalsIndex } from '@/routes/terminals';
 import { index as usersIndex } from '@/routes/users';
@@ -33,6 +35,14 @@ const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
     ];
+
+    if (can('floor.view')) {
+        items.push({
+            title: 'Tables',
+            href: floorIndex(),
+            icon: LayoutPanelTop,
+        });
+    }
 
     if (can('menu.view')) {
         items.push({ title: 'Menu', href: menuIndex(), icon: UtensilsCrossed });
