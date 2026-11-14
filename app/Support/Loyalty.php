@@ -65,7 +65,12 @@ final class Loyalty
     public static function expire(Customer $customer, ?User $by = null): void
     {
         $rows = LoyaltyEntry::query()->where('customer_id', $customer->id)->orderBy('id')->get();
-        $used = -$rows->where('points', '<', 0)->sum('points');
+        $used = 0;
+        foreach ($rows as $r) {
+            if ($r->points < 0) {
+                $used -= $r->points;
+            }
+        }
         $expired = 0;
         foreach ($rows->where('points', '>', 0) as $earn) {
             $take = min($used, $earn->points);
@@ -99,11 +104,11 @@ final class Loyalty
             }
             $last = max($last ?? '', (string) $b->created_at);
         }
-        $fav = DB::table('order_items')->join('bills', 'bills.order_id', '=', 'order_items.order_id')
+        $fav = array_values(DB::table('order_items')->join('bills', 'bills.order_id', '=', 'order_items.order_id')
             ->where('bills.customer_id', $customer->id)->where('order_items.status', '!=', 'void')
             ->groupBy('order_items.name')->selectRaw('order_items.name as name, SUM(order_items.quantity) as qty')
             ->orderByDesc('qty')->limit(3)->get()
-            ->map(fn ($r): array => ['name' => (string) $r->name, 'qty' => (int) $r->qty])->values()->all();
+            ->map(fn ($r): array => ['name' => (string) $r->name, 'qty' => (int) $r->qty])->all());
 
         return ['visits' => $bills->count(), 'spent' => $spent, 'last_visit' => $last, 'favourites' => $fav, 'spent_12m' => $spent12, 'tier' => self::tier($spent12)];
     }
