@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
 use App\Http\Controllers\Floor\FloorController;
+use App\Http\Controllers\Kitchen\KitchenController;
 use App\Http\Controllers\Menu\MenuCategoryController;
 use App\Http\Controllers\Menu\MenuController;
 use App\Http\Controllers\Menu\MenuItemController;
@@ -68,6 +69,13 @@ Route::middleware('auth')->group(function () {
         Route::post('order-items/{orderItem}/void', [PosController::class, 'voidItem'])->middleware('throttle:10,1')->name('items.void');
         Route::patch('order-items/{orderItem}/served', [PosController::class, 'markServed'])->name('items.served');
         Route::get('kots/{kot}/print', [PosController::class, 'printKot'])->name('kots.print');
+    });
+
+    // Kitchen & bar display (step 6).
+    Route::middleware('can:kitchen.view')->prefix('kitchen')->name('kitchen.')->group(function () {
+        Route::get('/', [KitchenController::class, 'index'])->name('index');
+        Route::patch('items/{orderItem}/bump', [KitchenController::class, 'bump'])->name('items.bump');
+        Route::patch('kots/{kot}/bump', [KitchenController::class, 'bumpKot'])->name('kots.bump');
     });
 
     // Menu (step 2). Everyone with menu.view sees it; only menu.manage edits; sold-out toggle has its own permission.

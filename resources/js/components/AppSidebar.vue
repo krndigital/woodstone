@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
+    ChefHat,
     LayoutGrid,
     LayoutPanelTop,
     MonitorSmartphone,
@@ -26,6 +27,7 @@ import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { edit as settingsEdit } from '@/routes/admin/settings';
 import { index as floorIndex } from '@/routes/floor';
+import { index as kitchenIndex } from '@/routes/kitchen';
 import { index as menuIndex } from '@/routes/menu';
 import { index as posIndex } from '@/routes/pos';
 import { index as terminalsIndex } from '@/routes/terminals';
@@ -42,6 +44,10 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (can('pos.use')) {
         items.push({ title: 'POS', href: posIndex(), icon: ShoppingCart });
+    }
+
+    if (can('kitchen.view')) {
+        items.push({ title: 'Kitchen', href: kitchenIndex(), icon: ChefHat });
     }
 
     if (can('floor.view')) {
