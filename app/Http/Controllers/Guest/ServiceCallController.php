@@ -8,6 +8,7 @@ use App\Enums\Permission;
 use App\Enums\TableStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DiningTable;
+use App\Models\Order;
 use App\Models\ServiceCall;
 use App\Models\User;
 use App\Support\Audit;
@@ -22,9 +23,22 @@ use Illuminate\Validation\Rule;
  */
 class ServiceCallController extends Controller
 {
-    public function pending(): JsonResponse
+    /**
+     * Routing (FR-16.5): a waiter sees calls for their own tables and calls nobody has taken for
+     * 60 seconds (escalation). Reception, cashier and managers always see every call.
+     */
+    public function pending(Request $request): JsonResponse
     {
+        /** @var User $user */
+        $user = $request->user();
+        $seesAll = $user->hasPermission(Permission::TakePayment) || $user->hasPermission(Permission::ApproveOverride);
+
         $calls = ServiceCall::query()->with(['diningTable', 'acceptor:id,name'])
+            ->when(! $seesAll, fn ($q) => $q->where(fn ($w) => $w
+                ->whereNull('order_id')
+                ->orWhereIn('order_id', Order::query()->select('id')->where('waiter_id', $user->id))
+                ->orWhere('created_at', '<=', now()->subSeconds(60))
+                ->orWhere('accepted_by', $user->id)))
             ->whereIn('status', ['sent', 'accepted'])
             ->where('created_at', '>=', now()->subHours(3))
             ->orderBy('id')->limit(30)->get()

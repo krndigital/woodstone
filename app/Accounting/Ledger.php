@@ -41,6 +41,7 @@ final class Ledger
             $count += $this->payslips();
             $count += $this->customerOpenings();
             $count += $this->supplierOpenings();
+            $count += $this->forfeits();
         });
 
         return $count;
@@ -128,12 +129,15 @@ final class Ledger
             $clearing = 0;
             $due = 0;
             $points = 0;
+            $advance = 0;
             foreach (DB::table('bill_payments')->where('bill_id', $b->id)->get(['method', 'amount']) as $p) {
                 $a = Money::toPaisa((string) $p->amount);
                 if ($p->method === 'due') {
                     $due += $a;
                 } elseif ($p->method === 'points') {
                     $points += $a;
+                } elseif ($p->method === 'advance') {
+                    $advance += $a;
                 } else {
                     $clearing += $a;
                 }
@@ -143,6 +147,7 @@ final class Ledger
                 ['code' => '1190', 'debit' => $clearing, 'credit' => 0],
                 ['code' => '1100', 'debit' => $due, 'credit' => 0],
                 ['code' => '5200', 'debit' => $points, 'credit' => 0],
+                ['code' => '2200', 'debit' => $advance, 'credit' => 0],
                 ['code' => '4000', 'debit' => 0, 'credit' => $sales],
                 ['code' => '4010', 'debit' => 0, 'credit' => Money::toPaisa((string) $b->service_amount)],
                 ['code' => '2100', 'debit' => 0, 'credit' => Money::toPaisa((string) $b->vat_amount)],
@@ -188,6 +193,7 @@ final class Ledger
                 'due_receipt' => '1100',
                 'purchase', 'supplier_payment' => '2000',
                 'advance' => '1110',
+                'reservation' => '2200',
                 'transfer' => '1195',
                 'day_close' => '6980',
                 'expense', 'expense_void' => $this->expenseAccount((int) ($expenses[(int) $t->source_id] ?? 0), (string) ($kinds[(int) $t->source_id] ?? 'operating'), (string) ($catNames[(int) ($expenses[(int) $t->source_id] ?? 0)] ?? 'Expense')),
@@ -336,6 +342,29 @@ final class Ledger
             $n += $this->post('supplier_opening', (int) $s->id, (string) $s->created_at, 'Opening payable · '.$s->name, [
                 ['code' => '3050', 'debit' => $a, 'credit' => 0],
                 ['code' => '2000', 'debit' => 0, 'credit' => $a],
+            ]);
+        }
+
+        return $n;
+    }
+
+    /**
+     * Advances kept when a guest cancels or does not come become other income.
+     */
+    private function forfeits(): int
+    {
+        $n = 0;
+        $done = $this->done('reservation_forfeit');
+        foreach (DB::table('reservations')->whereIn('status', ['cancelled', 'no_show'])->whereNotIn('id', $done)->get() as $r) {
+            $kept = Money::toPaisa((string) $r->advance) - Money::toPaisa((string) $r->advance_used);
+            if ($kept <= 0) {
+                DB::table('journal_entries')->insert(['entry_date' => substr((string) $r->updated_at, 0, 10), 'source_type' => 'reservation_forfeit', 'source_id' => $r->id, 'memo' => 'Booking closed, nothing kept', 'created_at' => now()]);
+
+                continue;
+            }
+            $n += $this->post('reservation_forfeit', (int) $r->id, (string) $r->updated_at, 'Booking advance kept · '.$r->name, [
+                ['code' => '2200', 'debit' => $kept, 'credit' => 0],
+                ['code' => '4950', 'debit' => 0, 'credit' => $kept],
             ]);
         }
 

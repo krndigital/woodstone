@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Banknote,
+    CalendarCheck,
     CreditCard,
     Gift,
     Landmark,
@@ -23,7 +24,7 @@ import { computeBill, paisaToInput, splitByWeights } from '@/lib/bill';
 import { rs, toPaisa } from '@/lib/money';
 import { index as posIndex } from '@/routes/pos';
 
-type Method = 'cash' | 'qr' | 'card' | 'bank' | 'due' | 'points';
+type Method = 'cash' | 'qr' | 'card' | 'bank' | 'due' | 'points' | 'advance';
 type Line = {
     id: number;
     name: string;
@@ -60,6 +61,8 @@ const props = defineProps<{
         items: Line[];
     };
     vatable: string;
+    minSpend: string;
+    advanceLeft: string;
     settings: {
         service_percent: string;
         vat_percent: string;
@@ -82,6 +85,7 @@ const ICON: Record<Method, typeof Banknote> = {
     card: CreditCard,
     bank: Landmark,
     points: Star,
+    advance: CalendarCheck,
     due: UserRound,
 };
 const lines = computed(() =>
@@ -104,7 +108,8 @@ const methods = computed(() =>
     props.settings.methods.filter(
         (m) =>
             (m.value !== 'due' || props.can.due) &&
-            (m.value !== 'points' || billCustomer.value !== null),
+            (m.value !== 'points' || billCustomer.value !== null) &&
+            (m.value !== 'advance' || toPaisa(props.advanceLeft) > 0),
     ),
 );
 
@@ -792,6 +797,22 @@ function pay(): void {
                 <div class="flex justify-between text-muted-foreground">
                     <span>VAT ({{ settings.vat_percent }}%)</span
                     ><span class="tabular-nums">{{ rs(totals.vat) }}</span>
+                </div>
+                <div
+                    v-if="
+                        toPaisa(minSpend) > 0 &&
+                        totals.subtotal < toPaisa(minSpend)
+                    "
+                    class="rounded-md bg-amber-50 p-2 text-xs font-semibold text-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
+                >
+                    Below this seat's minimum spend of {{ rs(minSpend) }}
+                </div>
+                <div
+                    v-if="toPaisa(advanceLeft) > 0"
+                    class="rounded-md bg-sky-50 p-2 text-xs font-semibold text-sky-900 dark:bg-sky-950/40 dark:text-sky-100"
+                >
+                    Booking advance available: {{ rs(advanceLeft) }}. Pay with
+                    "Booking advance".
                 </div>
                 <div
                     v-if="totals.roundOff"

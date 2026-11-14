@@ -16,6 +16,7 @@ use App\Models\Bill;
 use App\Models\BillPayment;
 use App\Models\LedgerEntry;
 use App\Models\Order;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\DuesData;
@@ -118,6 +119,8 @@ class BillController extends Controller
         return Inertia::render('billing/Checkout', [
             'order' => OrderData::order($order),
             'vatable' => Money::fromPaisa($vatable),
+            'minSpend' => $order->diningTable !== null ? $order->diningTable->min_spend : '0.00',
+            'advanceLeft' => ($r = Reservation::query()->where('order_id', $order->id)->first()) !== null ? Money::fromPaisa(Money::toPaisa($r->advance) - Money::toPaisa($r->advance_used)) : '0.00',
             'settings' => [
                 'service_percent' => Settings::string('service_charge_percent'),
                 'vat_percent' => Settings::string('vat_percent'),

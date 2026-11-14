@@ -14,6 +14,7 @@ enum PaymentMethod: string
     case Bank = 'bank';
     case Due = 'due';
     case Points = 'points';
+    case Advance = 'advance';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum PaymentMethod: string
             self::Bank => 'Bank transfer',
             self::Due => 'On due',
             self::Points => 'Loyalty points',
+            self::Advance => 'Booking advance',
         };
     }
 
@@ -36,6 +38,7 @@ enum PaymentMethod: string
             self::Bank => Settings::bool('payment_bank'),
             self::Due => Settings::bool('payment_due'),
             self::Points => Settings::bool('loyalty_enabled'),
+            self::Advance => true,
         };
     }
 

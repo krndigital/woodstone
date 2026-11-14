@@ -55,6 +55,12 @@ const props = defineProps<{
     kinds: Option[];
     entryTypes: Option[];
     movements?: Movement[];
+    expiring: {
+        name: string;
+        unit: string;
+        quantity: string;
+        expires_on: string;
+    }[];
 }>();
 
 defineOptions({
@@ -176,6 +182,26 @@ function openHistory(i: Item): void {
             <TriangleAlert class="size-4" /> {{ lowCount }} item(s) at or below
             reorder level — {{ onlyLow ? 'show all' : 'show them' }}
         </button>
+
+        <details
+            v-if="expiring.length"
+            class="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-100"
+        >
+            <summary class="cursor-pointer font-semibold">
+                {{ expiring.length }} batch(es) expire within 7 days or have
+                expired — use these first
+            </summary>
+            <ul class="mt-2 flex flex-col gap-1">
+                <li
+                    v-for="(e, i) in expiring"
+                    :key="i"
+                    class="flex justify-between"
+                >
+                    <span>{{ e.name }} · {{ e.quantity }} {{ e.unit }}</span
+                    ><span class="tabular-nums">{{ e.expires_on }}</span>
+                </li>
+            </ul>
+        </details>
 
         <div class="flex flex-wrap items-center gap-2">
             <Input v-model="q" class="h-10 w-60" placeholder="Search item" />

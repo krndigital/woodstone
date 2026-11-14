@@ -31,6 +31,7 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\FloorData;
+use App\Support\ItemEvents;
 use App\Support\ManagerApproval;
 use App\Support\Money;
 use App\Support\OrderData;
@@ -181,6 +182,7 @@ class PosController extends Controller
         }
 
         $orderItem->forceFill(['status' => OrderItemStatus::Served, 'served_at' => now()])->save();
+        ItemEvents::log([$orderItem->id], 'served', $request->actor()->id);
 
         return back();
     }

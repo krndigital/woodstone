@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\Zone;
 use App\Support\Audit;
 use App\Support\FloorData;
+use App\Support\Money;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -91,7 +92,7 @@ class FloorController extends Controller
     public function storeTable(DiningTableRequest $request): RedirectResponse
     {
         $table = new DiningTable($request->safe()->only(['zone_id', 'code', 'kind', 'seats', 'sort_order']));
-        $table->forceFill(['status' => TableStatus::Free, 'is_active' => true, 'sort_order' => $request->integer('sort_order'), 'qr_token' => Str::random(32)])->save();
+        $table->forceFill(['status' => TableStatus::Free, 'is_active' => true, 'sort_order' => $request->integer('sort_order'), 'qr_token' => Str::random(32), 'min_spend' => $this->minSpend($request)])->save();
         Audit::record('floor.table_created', $table, ['code' => $table->code]);
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':table added.', ['table' => $table->label()])]);
 
@@ -128,9 +129,17 @@ class FloorController extends Controller
         }
 
         $table->fill($request->safe()->only(['zone_id', 'code', 'kind', 'seats']));
-        $table->forceFill(['sort_order' => $request->integer('sort_order'), 'is_active' => $active])->save();
+        $table->forceFill(['sort_order' => $request->integer('sort_order'), 'is_active' => $active, 'min_spend' => $this->minSpend($request)])->save();
         Audit::record('floor.table_updated', $table, ['code' => $table->code, 'is_active' => $active]);
 
         return back();
+    }
+
+    /**
+     * Cabin minimum spend (FR-1.5); 0 = none.
+     */
+    private function minSpend(DiningTableRequest $request): string
+    {
+        return Money::fromPaisa(Money::toPaisa($request->filled('min_spend') ? $request->string('min_spend')->toString() : '0'));
     }
 }

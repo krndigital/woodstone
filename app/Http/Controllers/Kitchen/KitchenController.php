@@ -11,6 +11,7 @@ use App\Http\Requests\Kitchen\BumpRequest;
 use App\Models\Kot;
 use App\Models\OrderItem;
 use App\Models\Station;
+use App\Support\ItemEvents;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -105,6 +106,7 @@ class KitchenController extends Controller
             'status' => $next,
             'ready_at' => $next === OrderItemStatus::Ready ? now() : $item->ready_at,
         ])->save();
+        ItemEvents::log([$item->id], $next->value, auth()->id() === null ? null : (int) auth()->id());
 
         return true;
     }

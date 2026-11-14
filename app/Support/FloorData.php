@@ -41,6 +41,7 @@ final class FloorData
                 'label' => $t->label(),
                 'kind' => $t->kind->value,
                 'seats' => $t->seats,
+                'min_spend' => $t->min_spend,
                 'status' => $t->status->value,
                 'status_label' => $t->status->label(),
                 'reserved_for' => $t->reserved_for,

@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\ItemEvents;
 use App\Support\NumberSequence;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -50,6 +51,7 @@ final class SendKot
                     'updated_at' => now(),
                 ]);
 
+                ItemEvents::log($lines->pluck('id')->map(fn ($id): int => (int) $id), 'sent', $user->id);
                 $kots[] = $kot;
             }
 

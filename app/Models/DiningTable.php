@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
  * @property int $sort_order
  * @property bool $is_active
  * @property string|null $qr_token
+ * @property string $min_spend
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  */

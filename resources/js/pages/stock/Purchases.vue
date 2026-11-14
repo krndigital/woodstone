@@ -64,6 +64,7 @@ type Line = {
     in_purchase_unit: boolean;
     rate: string;
     po_line_id: number | null;
+    expires_on: string;
 };
 
 const props = defineProps<{
@@ -86,6 +87,7 @@ const blank = (): Line => ({
     in_purchase_unit: true,
     rate: '',
     po_line_id: null,
+    expires_on: '',
 });
 const form = useForm({
     supplier_id: null as number | null,
@@ -132,6 +134,7 @@ function usePo(id: number | null): void {
             in_purchase_unit: true,
             rate: l.expected_rate,
             po_line_id: l.id,
+            expires_on: '',
         }));
 }
 function errorFor(key: string): string | undefined {
@@ -394,12 +397,20 @@ function save(): void {
                             <span class="tabular-nums">{{
                                 rs(lineTotal(l))
                             }}</span>
+                            · expires
+                            <input
+                                v-model="l.expires_on"
+                                type="date"
+                                class="h-7 rounded border bg-background px-1 text-xs"
+                                aria-label="Expiry date (optional)"
+                            />
                             <span class="text-red-600">
                                 {{
                                     errorFor(`lines.${i}.stock_item_id`) ||
                                     errorFor(`lines.${i}.quantity`) ||
                                     errorFor(`lines.${i}.rate`) ||
                                     errorFor(`lines.${i}.po_line_id`) ||
+                                    errorFor(`lines.${i}.expires_on`) ||
                                     ''
                                 }}</span
                             >

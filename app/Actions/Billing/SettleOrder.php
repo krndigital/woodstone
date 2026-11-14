@@ -17,6 +17,7 @@ use App\Models\BillPayment;
 use App\Models\Customer;
 use App\Models\LedgerEntry;
 use App\Models\Order;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\BillCalculator;
@@ -78,6 +79,7 @@ final class SettleOrder
             $sum = 0;
             $duePerCustomer = [];
             $pointsPaisa = 0;
+            $advancePaisa = 0;
             foreach ($payments as $i => $p) {
                 $method = PaymentMethod::from($p['method']);
                 $amount = Money::toPaisa($p['amount']);
@@ -103,6 +105,9 @@ final class SettleOrder
                 }
                 if ($method === PaymentMethod::Points) {
                     $pointsPaisa += $amount;
+                }
+                if ($method === PaymentMethod::Advance) {
+                    $advancePaisa += $amount;
                 }
             }
 
@@ -139,9 +144,20 @@ final class SettleOrder
                 $customers[$customerId] = $customer;
             }
 
+            // A booking advance can pay up to what is left of it (FR-1.4).
+            $reservation = null;
+            if ($advancePaisa > 0) {
+                $reservation = Reservation::query()->where('order_id', $order->id)->lockForUpdate()->first();
+                $left = $reservation === null ? 0 : Money::toPaisa($reservation->advance) - Money::toPaisa($reservation->advance_used);
+                if ($advancePaisa > $left) {
+                    throw ValidationException::withMessages(['payments' => __('The booking advance left is only :left.', ['left' => Money::fromPaisa($left)])]);
+                }
+            }
+
             $approver = $needsApproval === [] ? null : ManagerApproval::resolve($cashier, $approval['username'], $approval['secret']);
 
             $paid = $sum - array_sum($duePerCustomer) - $pointsPaisa;
+            $reservation?->forceFill(['advance_used' => Money::fromPaisa(Money::toPaisa($reservation->advance_used) + $advancePaisa)])->save();
             $bill = new Bill;
             $bill->forceFill([
                 'number' => NumberSequence::nextBillNumber(),
@@ -180,7 +196,7 @@ final class SettleOrder
                     'created_at' => now(),
                 ])->save();
 
-                if ($method !== PaymentMethod::Due && $method !== PaymentMethod::Points) {
+                if (! in_array($method, [PaymentMethod::Due, PaymentMethod::Points, PaymentMethod::Advance], true)) {
                     CashBook::post(CashBook::accountForMethod($method->value), Money::toPaisa($p['amount']), 'bill_payment', $payment->id, $cashier, 'Bill '.$bill->number);
                 }
             }

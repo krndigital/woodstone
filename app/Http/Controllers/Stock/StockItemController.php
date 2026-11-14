@@ -17,6 +17,7 @@ use App\Support\Money;
 use App\Support\Qty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -54,6 +55,12 @@ class StockItemController extends Controller
             'items' => $items,
             'kinds' => array_map(fn (StockKind $k): array => ['value' => $k->value, 'label' => $k->label()], StockKind::cases()),
             'entryTypes' => array_map(fn (StockMovementType $t): array => ['value' => $t->value, 'label' => $t->label()], StockMovementType::manual()),
+            'expiring' => DB::table('purchase_lines')->join('stock_items', 'stock_items.id', '=', 'purchase_lines.stock_item_id')
+                ->whereNotNull('purchase_lines.expires_on')->where('purchase_lines.expires_on', '<=', now()->addDays(7)->toDateString())
+                ->where('purchase_lines.expires_on', '>=', now()->subDays(30)->toDateString())->where('stock_items.on_hand', '>', 0)
+                ->orderBy('purchase_lines.expires_on')->limit(50)
+                ->get(['stock_items.name', 'stock_items.unit', 'purchase_lines.base_quantity', 'purchase_lines.expires_on'])
+                ->map(fn ($r): array => ['name' => (string) $r->name, 'unit' => (string) $r->unit, 'quantity' => (string) $r->base_quantity, 'expires_on' => substr((string) $r->expires_on, 0, 10)])->values()->all(),
             'movements' => Inertia::optional(fn (): array => $itemId === null ? [] : $this->movements($itemId)),
         ]);
     }

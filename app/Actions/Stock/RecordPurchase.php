@@ -31,7 +31,7 @@ final class RecordPurchase
     public function __construct(private readonly StockLedger $ledger) {}
 
     /**
-     * @param  list<array{stock_item_id: int, quantity: string, in_purchase_unit: bool, rate: string, po_line_id: int|null}>  $lines
+     * @param  list<array{stock_item_id: int, quantity: string, in_purchase_unit: bool, rate: string, po_line_id: int|null, expires_on?: string|null}>  $lines
      * @param  array{purchased_on: string, supplier_bill_no: string|null, paid_amount: string, paid_method: string|null, note: string|null, due_on?: string|null}  $details
      * @return array{purchase: Purchase, differences: list<string>}
      */
@@ -82,7 +82,8 @@ final class RecordPurchase
                     }
                 }
 
-                $prepared[] = compact('item', 'qty', 'usePurchaseUnit', 'base', 'ratePaisa', 'linePaisa', 'unitCost', 'poLine');
+                $expiresOn = $line['expires_on'] ?? null;
+                $prepared[] = compact('item', 'qty', 'usePurchaseUnit', 'base', 'ratePaisa', 'linePaisa', 'unitCost', 'poLine', 'expiresOn');
             }
 
             $paid = Money::toPaisa($details['paid_amount'] === '' ? '0' : $details['paid_amount']);
@@ -122,6 +123,7 @@ final class RecordPurchase
                     'base_quantity' => Qty::fromMilli($p['base']),
                     'rate' => Money::fromPaisa($p['ratePaisa']),
                     'line_total' => Money::fromPaisa($p['linePaisa']),
+                    'expires_on' => $p['expiresOn'],
                 ])->save();
 
                 $this->ledger->move($p['item'], StockMovementType::Purchase, $p['base'], $p['unitCost'], $by, null, 'purchase', $purchase->id);

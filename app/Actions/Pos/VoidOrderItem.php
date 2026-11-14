@@ -8,6 +8,7 @@ use App\Enums\OrderItemStatus;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\ItemEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -35,6 +36,7 @@ final class VoidOrderItem
             ])->save();
 
             $order->recalculate();
+            ItemEvents::log([$line->id], 'void', $actor->id);
 
             Audit::record('order.item_voided', $line, [
                 'order' => $order->number, 'item' => $line->name, 'quantity' => $line->quantity,

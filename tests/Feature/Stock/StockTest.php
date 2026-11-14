@@ -87,13 +87,31 @@ class StockTest extends TestCase
         // 5 kg more at Rs 700/kg → average Rs 0.65/g
         $this->actingAs($keeper)->post(route('stock.purchases.store'), [
             'supplier_id' => $supplier->id, 'purchased_on' => now()->toDateString(),
-            'lines' => [['stock_item_id' => $chicken->id, 'quantity' => '5', 'in_purchase_unit' => true, 'rate' => '700']],
+            'lines' => [['stock_item_id' => $chicken->id, 'quantity' => '5', 'in_purchase_unit' => true, 'rate' => '700', 'expires_on' => now()->addDays(3)->toDateString()]],
         ])->assertSessionHasNoErrors();
         $this->assertSame('0.6500', $chicken->refresh()->avg_cost);
         $this->assertSame('10000.000', $chicken->on_hand);
 
         $this->actingAs($keeper)->get(route('stock.suppliers.index'))
             ->assertInertia(fn (Assert $page) => $page->where('suppliers.0.owed', '5500.00'));
+    }
+
+    public function test_batches_expiring_soon_are_listed(): void
+    {
+        $chicken = $this->chicken();
+        $keeper = $this->keeper();
+        $supplier = $this->supplier();
+        $this->actingAs($keeper)->post(route('stock.purchases.store'), [
+            'supplier_id' => $supplier->id, 'purchased_on' => now()->toDateString(),
+            'lines' => [['stock_item_id' => $chicken->id, 'quantity' => '2', 'in_purchase_unit' => true, 'rate' => '600', 'expires_on' => now()->addDays(2)->toDateString()]],
+        ])->assertSessionHasNoErrors();
+        $this->actingAs($keeper)->post(route('stock.purchases.store'), [
+            'supplier_id' => $supplier->id, 'purchased_on' => now()->toDateString(),
+            'lines' => [['stock_item_id' => $chicken->id, 'quantity' => '1', 'in_purchase_unit' => true, 'rate' => '600', 'expires_on' => now()->subDay()->toDateString()]],
+        ])->assertSessionHasErrors('lines.0.expires_on');
+
+        $this->actingAs($keeper)->get(route('stock.items.index'))
+            ->assertInertia(fn (Assert $page) => $page->has('expiring', 1)->where('expiring.0.name', 'Chicken'));
     }
 
     public function test_purchase_validation(): void

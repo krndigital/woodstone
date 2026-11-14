@@ -34,6 +34,8 @@ final class ReportCatalog
             'supplier-payable' => ['title' => 'Supplier payable', 'description' => 'What we owe each supplier', 'group' => 'Money', 'permission' => $r],
             'payables-ageing' => ['title' => 'Payables ageing', 'description' => 'Not due, 1–30, 31–60, 61–90, 90+ days late, and due in the next 7 days', 'group' => 'Money', 'permission' => $r],
             'stock' => ['title' => 'Stock', 'description' => 'Current stock and value, usage, wastage in the period', 'group' => 'Stock', 'permission' => $r],
+            'kitchen-times' => ['title' => 'Kitchen times', 'description' => 'Average minutes from KOT to ready and to served, per station', 'group' => 'Staff', 'permission' => $r],
+            'service-calls' => ['title' => 'Guest calls', 'description' => 'Calls per seat and average response time per waiter', 'group' => 'Staff', 'permission' => $r],
             'staff' => ['title' => 'Staff', 'description' => 'Attendance and sales per waiter', 'group' => 'Staff', 'permission' => $r],
             'profit-loss' => ['title' => 'Profit and loss', 'description' => 'Income, cost of goods, expenses, net profit; kitchen and bar P/L', 'group' => 'Owner', 'permission' => $sa],
             'trial-balance' => ['title' => 'Trial balance', 'description' => 'Every ledger account with debit and credit totals for the period', 'group' => 'Owner', 'permission' => $sa],

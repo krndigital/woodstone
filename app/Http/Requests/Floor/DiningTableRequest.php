@@ -39,6 +39,7 @@ class DiningTableRequest extends FormRequest
             'kind' => ['required', Rule::enum(TableKind::class)],
             'seats' => ['required', 'integer', 'min:1', 'max:40'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'min_spend' => ['nullable', 'regex:/^\d{1,8}(\.\d{1,2})?$/'],
             'is_active' => ['boolean'],
         ];
     }

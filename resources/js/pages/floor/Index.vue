@@ -15,6 +15,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { index as floorIndex, qrCards } from '@/routes/floor';
+import { index as reservationsIndex } from '@/routes/floor/reservations';
 
 type Zone = {
     id: number;
@@ -29,6 +30,7 @@ type Table = {
     label: string;
     kind: 'table' | 'cabin';
     seats: number;
+    min_spend: string;
     status: 'free' | 'occupied' | 'bill' | 'reserved' | 'cleaning';
     status_label: string;
     reserved_for: string | null;
@@ -144,6 +146,7 @@ const tableForm = useForm({
     code: '',
     kind: 'table' as 'table' | 'cabin',
     seats: 4,
+    min_spend: '',
     sort_order: 0,
     is_active: true,
 });
@@ -155,6 +158,7 @@ function editTable(t: Table | null): void {
     tableForm.code = t?.code ?? '';
     tableForm.kind = t?.kind ?? 'table';
     tableForm.seats = t?.seats ?? 4;
+    tableForm.min_spend = t && Number(t.min_spend) > 0 ? t.min_spend : '';
     tableForm.sort_order = t?.sort_order ?? 0;
     tableForm.is_active = t?.is_active ?? true;
 }
@@ -191,6 +195,11 @@ function saveTable(): void {
                 >
                     <RefreshCw class="size-4" /> Refresh
                 </Button>
+                <Link
+                    :href="reservationsIndex().url"
+                    class="flex h-10 items-center rounded-md border px-3 text-sm font-semibold"
+                    >Bookings</Link
+                >
                 <Link
                     v-if="can.manage"
                     :href="qrCards().url"
@@ -440,6 +449,16 @@ function saveTable(): void {
                             type="number"
                             min="1"
                             max="40"
+                            class="h-10"
+                        />
+                    </div>
+                    <div class="grid gap-1">
+                        <Label for="t-min">Minimum spend (Rs)</Label>
+                        <Input
+                            id="t-min"
+                            v-model="tableForm.min_spend"
+                            inputmode="decimal"
+                            placeholder="0"
                             class="h-10"
                         />
                     </div>

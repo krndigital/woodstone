@@ -51,6 +51,8 @@ final class ReportBuilder
             'profit-loss' => self::profitLoss($p),
             'audit' => self::audit($p),
             'payables-ageing' => self::payablesAgeing(),
+            'kitchen-times' => self::kitchenTimes($p),
+            'service-calls' => self::serviceCalls($p),
             'trial-balance' => self::trialBalance($p),
             'balance-sheet' => self::balanceSheet($p),
             'cash-flow' => self::cashFlow($p),
@@ -553,6 +555,61 @@ final class ReportBuilder
         $rows[] = ['line' => 'Closing cash, bank and wallets', 'amount' => $opening + $net];
 
         return ['columns' => self::cols([['line', 'Line'], ['amount', 'Amount', 'money']]), 'rows' => $rows, 'totals' => null, 'notes' => ['Transfers between your own accounts are left out.']];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function kitchenTimes(Period $p): array
+    {
+        $st = [];
+        foreach (DB::table('order_items')->join('stations', 'stations.id', '=', 'order_items.station_id')->whereNotNull('order_items.sent_at')->whereBetween('order_items.sent_at', $p->between())
+            ->get(['stations.name', 'order_items.sent_at', 'order_items.ready_at', 'order_items.served_at', 'order_items.quantity']) as $i) {
+            $k = (string) $i->name;
+            $st[$k] ??= ['station' => $k, 'items' => 0, 'ready_n' => 0, 'ready_s' => 0, 'served_n' => 0, 'served_s' => 0, 'late' => 0];
+            $st[$k]['items'] += (int) $i->quantity;
+            $sent = CarbonImmutable::parse((string) $i->sent_at);
+            if ($i->ready_at !== null) {
+                $secs = (int) $sent->diffInSeconds(CarbonImmutable::parse((string) $i->ready_at), true);
+                $st[$k]['ready_n']++;
+                $st[$k]['ready_s'] += $secs;
+                $st[$k]['late'] += $secs > 1200 ? 1 : 0;
+            }
+            if ($i->served_at !== null) {
+                $st[$k]['served_n']++;
+                $st[$k]['served_s'] += (int) $sent->diffInSeconds(CarbonImmutable::parse((string) $i->served_at), true);
+            }
+        }
+        $rows = array_values(array_map(fn (array $s): array => [
+            'station' => $s['station'], 'items' => $s['items'],
+            'to_ready' => $s['ready_n'] > 0 ? intdiv($s['ready_s'], $s['ready_n'] * 60) : 0,
+            'to_served' => $s['served_n'] > 0 ? intdiv($s['served_s'], $s['served_n'] * 60) : 0,
+            'late' => $s['late'],
+        ], $st));
+
+        return ['columns' => self::cols([['station', 'Station'], ['items', 'Items', 'int'], ['to_ready', 'Avg min to ready', 'int'], ['to_served', 'Avg min to served', 'int'], ['late', 'Over 20 min', 'int']]), 'rows' => $rows, 'totals' => self::sum($rows, ['items', 'late'], 'station'), 'notes' => []];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function serviceCalls(Period $p): array
+    {
+        $rows = [];
+        foreach (DB::table('service_calls')->join('dining_tables', 'dining_tables.id', '=', 'service_calls.dining_table_id')->leftJoin('users', 'users.id', '=', 'service_calls.accepted_by')
+            ->where('service_calls.type', '!=', 'ping')->whereBetween('service_calls.created_at', $p->between())
+            ->get(['dining_tables.code', 'users.name as waiter', 'service_calls.created_at', 'service_calls.accepted_at']) as $c) {
+            $key = (string) $c->code.'|'.($c->waiter ?? 'Not taken');
+            $rows[$key] ??= ['seat' => (string) $c->code, 'waiter' => (string) ($c->waiter ?? 'Not taken'), 'calls' => 0, 'secs' => 0, 'n' => 0];
+            $rows[$key]['calls']++;
+            if ($c->accepted_at !== null) {
+                $rows[$key]['n']++;
+                $rows[$key]['secs'] += (int) CarbonImmutable::parse((string) $c->created_at)->diffInSeconds(CarbonImmutable::parse((string) $c->accepted_at), true);
+            }
+        }
+        $out = array_values(array_map(fn (array $r): array => ['seat' => $r['seat'], 'waiter' => $r['waiter'], 'calls' => $r['calls'], 'avg' => $r['n'] > 0 ? intdiv($r['secs'], $r['n']) : 0], $rows));
+
+        return ['columns' => self::cols([['seat', 'Seat'], ['waiter', 'Accepted by'], ['calls', 'Calls', 'int'], ['avg', 'Avg seconds to accept', 'int']]), 'rows' => $out, 'totals' => self::sum($out, ['calls'], 'seat'), 'notes' => []];
     }
 
     /**

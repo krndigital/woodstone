@@ -9,6 +9,7 @@ use App\Http\Controllers\Billing\BillController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dues\CustomerController;
 use App\Http\Controllers\Floor\FloorController;
+use App\Http\Controllers\Floor\ReservationController;
 use App\Http\Controllers\Guest\GuestController;
 use App\Http\Controllers\Guest\ServiceCallController;
 use App\Http\Controllers\Kitchen\KitchenController;
@@ -197,6 +198,14 @@ Route::middleware('auth')->group(function () {
 
         Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
         Route::put('recipes/{menuItem}', [RecipeController::class, 'update'])->name('recipes.update');
+    });
+
+    // Reservations with advance (FR-1.4).
+    Route::middleware('can:floor.view')->prefix('reservations')->name('floor.reservations.')->group(function () {
+        Route::get('/', [ReservationController::class, 'index'])->name('index');
+        Route::post('/', [ReservationController::class, 'store'])->name('store');
+        Route::post('{reservation}/seat', [ReservationController::class, 'seat'])->name('seat');
+        Route::post('{reservation}/close', [ReservationController::class, 'close'])->name('close');
     });
 
     // Guest calls, staff side (step 14).

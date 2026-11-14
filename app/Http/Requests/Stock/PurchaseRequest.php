@@ -29,11 +29,12 @@ class PurchaseRequest extends StockRequest
             'lines.*.in_purchase_unit' => ['boolean'],
             'lines.*.rate' => ['required', 'regex:'.self::MONEY],
             'lines.*.po_line_id' => ['nullable', 'integer'],
+            'lines.*.expires_on' => ['nullable', 'date_format:Y-m-d', 'after:today'],
         ];
     }
 
     /**
-     * @return list<array{stock_item_id: int, quantity: string, in_purchase_unit: bool, rate: string, po_line_id: int|null}>
+     * @return list<array{stock_item_id: int, quantity: string, in_purchase_unit: bool, rate: string, po_line_id: int|null, expires_on: string|null}>
      */
     public function lines(): array
     {
@@ -46,6 +47,7 @@ class PurchaseRequest extends StockRequest
                 'in_purchase_unit' => filter_var($l['in_purchase_unit'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'rate' => (string) $l['rate'],
                 'po_line_id' => isset($l['po_line_id']) ? (int) $l['po_line_id'] : null,
+                'expires_on' => isset($l['expires_on']) && $l['expires_on'] !== '' ? (string) $l['expires_on'] : null,
             ];
         }
 
