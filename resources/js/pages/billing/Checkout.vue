@@ -4,6 +4,8 @@ import {
     ArrowLeft,
     Banknote,
     CreditCard,
+    Gift,
+    Landmark,
     Minus,
     Plus,
     QrCode,
@@ -20,7 +22,7 @@ import { computeBill, paisaToInput, splitByWeights } from '@/lib/bill';
 import { rs, toPaisa } from '@/lib/money';
 import { index as posIndex } from '@/routes/pos';
 
-type Method = 'cash' | 'qr' | 'card' | 'due';
+type Method = 'cash' | 'qr' | 'card' | 'bank' | 'due';
 type Line = {
     id: number;
     name: string;
@@ -62,6 +64,7 @@ const props = defineProps<{
         discount_limit: number;
         methods: { value: Method; label: string }[];
         auto_print: boolean;
+        round_off: boolean;
     };
     customers: Customer[];
     can: { discount: boolean; approve: boolean; due: boolean };
@@ -75,6 +78,7 @@ const ICON: Record<Method, typeof Banknote> = {
     cash: Banknote,
     qr: QrCode,
     card: CreditCard,
+    bank: Landmark,
     due: UserRound,
 };
 const lines = computed(() =>
@@ -96,8 +100,15 @@ const totals = computed(() =>
         discountValue.value,
         props.settings.service_percent,
         props.settings.vat_percent,
+        props.settings.round_off,
     ),
 );
+/** Complimentary meal: 100 % discount; over the limit, so it needs manager approval. */
+function complimentary(): void {
+    discountType.value = 'percent';
+    discountValue.value = '100';
+    discountReason.value = 'Complimentary';
+}
 function setDiscountType(t: 'percent' | 'amount' | null): void {
     discountType.value = t;
     if (t === null) discountValue.value = '';
@@ -624,6 +635,14 @@ function pay(): void {
                         </button>
                     </div>
                 </div>
+                <button
+                    v-if="can.discount || can.approve"
+                    type="button"
+                    class="flex h-9 items-center justify-center gap-1 rounded-md border text-xs font-semibold"
+                    @click="complimentary"
+                >
+                    <Gift class="size-3.5" /> Complimentary (100 %)
+                </button>
                 <template v-if="discountType">
                     <div class="flex gap-1.5">
                         <Input
@@ -703,6 +722,13 @@ function pay(): void {
                 <div class="flex justify-between text-muted-foreground">
                     <span>VAT ({{ settings.vat_percent }}%)</span
                     ><span class="tabular-nums">{{ rs(totals.vat) }}</span>
+                </div>
+                <div
+                    v-if="totals.roundOff"
+                    class="flex justify-between text-muted-foreground"
+                >
+                    <span>Round off</span
+                    ><span class="tabular-nums">{{ rs(totals.roundOff) }}</span>
                 </div>
                 <div class="flex justify-between pt-1 text-2xl font-bold">
                     <span>Total</span

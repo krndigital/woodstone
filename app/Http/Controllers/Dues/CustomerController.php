@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dues;
 
 use App\Actions\Dues\PostLedger;
+use App\Enums\LedgerType;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
 use App\Http\Controllers\Controller;
@@ -20,6 +21,7 @@ use App\Support\Audit;
 use App\Support\DuesData;
 use App\Support\Money;
 use App\Support\Settings;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -155,7 +157,7 @@ class CustomerController extends Controller
             throw ValidationException::withMessages(['method' => __(':method payments are turned off in settings.', ['method' => $method->label()])]);
         }
 
-        $ledger->receive(
+        $entry = $ledger->receive(
             $customer,
             $method,
             $request->string('amount')->toString(),
@@ -164,8 +166,43 @@ class CustomerController extends Controller
             $request->actor(),
         );
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment received from :name.', ['name' => $customer->name])]);
+        Inertia::flash('printReceipt', $entry->id);
 
         return back();
+    }
+
+    /**
+     * 80 mm receipt for a due payment (FR-15.6).
+     */
+    public function receipt(LedgerEntry $entry): View
+    {
+        abort_unless($entry->type === LedgerType::Payment, 404);
+        $entry->load(['creator:id,name']);
+        $customer = Customer::query()->findOrFail($entry->customer_id);
+        $after = 0;
+        foreach (LedgerEntry::query()->where('customer_id', $customer->id)->where('id', '<=', $entry->id)->pluck('amount') as $a) {
+            $after += Money::toPaisa((string) $a);
+        }
+
+        return view('print.receipt', [
+            'entry' => $entry, 'customer' => $customer, 'settings' => Settings::all(),
+            'before' => Money::fromPaisa($after - Money::toPaisa($entry->amount)), 'after' => Money::fromPaisa($after),
+        ]);
+    }
+
+    /**
+     * Printable customer statement (FR-15.8), A4.
+     */
+    public function statement(Customer $customer): View
+    {
+        $rows = [];
+        $running = 0;
+        foreach (LedgerEntry::query()->with('bill:id,number')->where('customer_id', $customer->id)->orderBy('id')->get() as $e) {
+            $running += Money::toPaisa($e->amount);
+            $rows[] = ['date' => $e->created_at, 'what' => $e->type->label(), 'ref' => $e->bill?->number ?? $e->reference, 'note' => $e->note, 'amount' => $e->amount, 'balance' => Money::fromPaisa($running)];
+        }
+
+        return view('print.statement', ['customer' => $customer, 'rows' => $rows, 'summary' => DuesData::summary($customer), 'settings' => Settings::all()]);
     }
 
     public function move(MoveDueRequest $request, Customer $customer, PostLedger $ledger): RedirectResponse

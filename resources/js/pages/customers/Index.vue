@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowRightLeft, HandCoins, Pencil, Plus } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import CustomerController from '@/actions/App/Http/Controllers/Dues/CustomerController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -147,6 +147,23 @@ function move(): void {
         onFinish: () => (moveForm.approver_secret = ''),
     });
 }
+
+// After receiving a due payment the server asks for the receipt to be printed (FR-15.6).
+let off: (() => void) | undefined;
+onMounted(() => {
+    off = router.on('flash', (event) => {
+        const id = (event as CustomEvent).detail?.flash?.printReceipt as
+            | number
+            | undefined;
+        if (id)
+            window.open(
+                CustomerController.receipt(id).url,
+                '_blank',
+                'width=380,height=700',
+            );
+    });
+});
+onBeforeUnmount(() => off?.());
 
 const groupForm = useForm({ name: '' });
 function addGroup(): void {

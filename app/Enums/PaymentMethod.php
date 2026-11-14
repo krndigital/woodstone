@@ -11,6 +11,7 @@ enum PaymentMethod: string
     case Cash = 'cash';
     case Qr = 'qr';
     case Card = 'card';
+    case Bank = 'bank';
     case Due = 'due';
 
     public function label(): string
@@ -19,6 +20,7 @@ enum PaymentMethod: string
             self::Cash => 'Cash',
             self::Qr => 'QR',
             self::Card => 'Card',
+            self::Bank => 'Bank transfer',
             self::Due => 'On due',
         };
     }
@@ -29,6 +31,7 @@ enum PaymentMethod: string
             self::Cash => true,
             self::Qr => Settings::bool('payment_qr'),
             self::Card => Settings::bool('payment_card'),
+            self::Bank => Settings::bool('payment_bank'),
             self::Due => Settings::bool('payment_due'),
         };
     }
@@ -40,6 +43,6 @@ enum PaymentMethod: string
      */
     public static function receivable(): array
     {
-        return [self::Cash, self::Qr, self::Card];
+        return [self::Cash, self::Qr, self::Card, self::Bank];
     }
 }

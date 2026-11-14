@@ -133,6 +133,7 @@ final class SettleOrder
                 'service_amount' => Money::fromPaisa($calc['service']),
                 'vat_percent' => $calc['vat_percent'],
                 'vat_amount' => Money::fromPaisa($calc['vat']),
+                'round_off' => Money::fromPaisa($calc['round_off']),
                 'total' => Money::fromPaisa($calc['total']),
                 'paid_amount' => Money::fromPaisa($paid),
                 'due_amount' => Money::fromPaisa(array_sum($duePerCustomer)),

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Bike, Plus, RefreshCw, ShoppingBag, Users } from '@lucide/vue';
+import { Bike, Plus, RefreshCw, ShoppingBag, Store, Users } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
@@ -34,7 +34,7 @@ type OpenOrder = {
     id: number;
     number: string;
     label: string;
-    type: 'dine_in' | 'takeaway' | 'delivery';
+    type: 'dine_in' | 'takeaway' | 'delivery' | 'counter';
     table_id: number | null;
     guests: number;
     waiter: string;
@@ -139,6 +139,11 @@ function newCounter(type: 'takeaway' | 'delivery'): void {
     sheetOpen.value = true;
 }
 
+/** Quick counter sale for cigarettes, water and drinks (FR-4.5): no table, straight to the order. */
+function counterSale(): void {
+    router.visit(PosController.store(), { data: { type: 'counter' } });
+}
+
 function open(): void {
     form.submit(PosController.store(), {
         onSuccess: () => (sheetOpen.value = false),
@@ -165,6 +170,9 @@ function open(): void {
                     @click="router.reload({ only: ['tables', 'orders'] })"
                     ><RefreshCw class="size-4" /> Refresh</Button
                 >
+                <Button variant="outline" class="h-11" @click="counterSale"
+                    ><Store class="size-4" /> Counter sale</Button
+                >
                 <Button
                     variant="outline"
                     class="h-11"
@@ -184,7 +192,7 @@ function open(): void {
             <h2
                 class="text-sm font-bold tracking-wide text-muted-foreground uppercase"
             >
-                Takeaway & delivery
+                Takeaway, delivery & counter
             </h2>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 <Link

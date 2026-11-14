@@ -43,6 +43,7 @@
         @endif
         <tr><td>Service charge ({{ rtrim(rtrim($bill->service_percent, '0'), '.') ?: '0' }}%)</td><td class="r">{{ $rs($bill->service_amount) }}</td></tr>
         <tr><td>VAT ({{ rtrim(rtrim($bill->vat_percent, '0'), '.') ?: '0' }}%)</td><td class="r">{{ $rs($bill->vat_amount) }}</td></tr>
+        @if ((float) $bill->round_off !== 0.0)<tr><td>Round off</td><td class="r">{{ $rs($bill->round_off) }}</td></tr>@endif
         <tr class="big b"><td>TOTAL</td><td class="r">Rs {{ $rs($bill->total) }}</td></tr>
     </table>
     <hr>

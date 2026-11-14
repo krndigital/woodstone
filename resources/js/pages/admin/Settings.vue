@@ -19,6 +19,8 @@ type AppSettings = {
     cashier_discount_limit_percent: number;
     payment_qr: boolean;
     payment_card: boolean;
+    payment_bank: boolean;
+    round_off: boolean;
     payment_due: boolean;
     default_credit_limit: string;
     auto_print: boolean;
@@ -196,6 +198,24 @@ function save(): void {
                             class="size-4"
                         />
                         Card</label
+                    >
+                    <label
+                        class="flex items-center gap-2 rounded-lg border px-3 py-2"
+                        ><input
+                            v-model="form.payment_bank"
+                            type="checkbox"
+                            class="size-4"
+                        />
+                        Bank transfer</label
+                    >
+                    <label
+                        class="flex items-center gap-2 rounded-lg border px-3 py-2"
+                        ><input
+                            v-model="form.round_off"
+                            type="checkbox"
+                            class="size-4"
+                        />
+                        Round total to the nearest rupee</label
                     >
                     <label
                         class="flex items-center gap-2 rounded-lg border px-3 py-2"

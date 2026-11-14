@@ -115,6 +115,8 @@ Route::middleware('auth')->group(function () {
         Route::post('customers/{customer}/payments', [CustomerController::class, 'receive'])->middleware('throttle:30,1')->name('customers.payments.store');
         Route::post('customers/{customer}/move', [CustomerController::class, 'move'])->middleware('throttle:10,1')->name('customers.move');
         Route::post('customer-groups', [CustomerController::class, 'storeGroup'])->name('customer-groups.store');
+        Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+        Route::get('customer-receipts/{entry}/print', [CustomerController::class, 'receipt'])->name('customers.receipts.print');
     });
 
     // Money: cash book, expenses, day open/close (step 10).

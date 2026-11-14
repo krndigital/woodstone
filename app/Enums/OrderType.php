@@ -9,6 +9,7 @@ enum OrderType: string
     case DineIn = 'dine_in';
     case Takeaway = 'takeaway';
     case Delivery = 'delivery';
+    case Counter = 'counter';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum OrderType: string
             self::DineIn => 'Dine in',
             self::Takeaway => 'Takeaway',
             self::Delivery => 'Delivery',
+            self::Counter => 'Counter',
         };
     }
 }

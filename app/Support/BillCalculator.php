@@ -12,12 +12,13 @@ use Illuminate\Validation\ValidationException;
 /**
  * The only place bill totals are worked out. Integer paisa; percents as basis points
  * ("10" → 1000, "13.5" → 1350). Half-up rounding. Order: discount → service charge → VAT.
- * VAT applies only to the share of items marked VAT applicable (FR-5.6).
+ * VAT applies only to the share of items marked VAT applicable (FR-5.6). With round-off on, the
+ * total goes to the nearest rupee and the difference is shown as its own line (FR-4.1).
  */
 final class BillCalculator
 {
     /**
-     * @return array{subtotal: int, vatable: int, discount: int, discount_bp: int, service: int, vat: int, total: int, service_percent: string, vat_percent: string}
+     * @return array{subtotal: int, vatable: int, discount: int, discount_bp: int, service: int, vat: int, round_off: int, total: int, service_percent: string, vat_percent: string}
      */
     public static function forOrder(Order $order, ?string $discountType, string $discountValue): array
     {
@@ -34,13 +35,13 @@ final class BillCalculator
             }
         }
 
-        return self::compute($subtotal, $vatable, $discountType, $discountValue, Settings::string('service_charge_percent'), Settings::string('vat_percent'));
+        return self::compute($subtotal, $vatable, $discountType, $discountValue, Settings::string('service_charge_percent'), Settings::string('vat_percent'), Settings::bool('round_off'));
     }
 
     /**
-     * @return array{subtotal: int, vatable: int, discount: int, discount_bp: int, service: int, vat: int, total: int, service_percent: string, vat_percent: string}
+     * @return array{subtotal: int, vatable: int, discount: int, discount_bp: int, service: int, vat: int, round_off: int, total: int, service_percent: string, vat_percent: string}
      */
-    public static function compute(int $subtotal, int $vatable, ?string $discountType, string $discountValue, string $servicePercent, string $vatPercent): array
+    public static function compute(int $subtotal, int $vatable, ?string $discountType, string $discountValue, string $servicePercent, string $vatPercent, bool $roundOff = false): array
     {
         $value = Money::toPaisa($discountValue === '' ? '0' : $discountValue);
 
@@ -66,7 +67,8 @@ final class BillCalculator
             'discount_bp' => $subtotal === 0 ? 0 : intdiv($discount * 10000 + intdiv($subtotal, 2), $subtotal),
             'service' => $service,
             'vat' => $vat,
-            'total' => $taxable + $service + $vat,
+            'round_off' => $roundOff ? intdiv($taxable + $service + $vat + 50, 100) * 100 - ($taxable + $service + $vat) : 0,
+            'total' => $roundOff ? intdiv($taxable + $service + $vat + 50, 100) * 100 : $taxable + $service + $vat,
             'service_percent' => $servicePercent,
             'vat_percent' => $vatPercent,
         ];

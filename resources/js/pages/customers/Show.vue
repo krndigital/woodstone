@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, Printer } from '@lucide/vue';
+import { ArrowLeft, MessageCircle, Printer } from '@lucide/vue';
+import CustomerController from '@/actions/App/Http/Controllers/Dues/CustomerController';
 import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import { usePermissions } from '@/composables/usePermissions';
 import { rs, toPaisa } from '@/lib/money';
@@ -22,7 +23,7 @@ type Entry = {
     created_at: string;
 };
 
-defineProps<{
+const props = defineProps<{
     customer: {
         id: number;
         name: string;
@@ -56,6 +57,13 @@ function when(iso: string): string {
         minute: '2-digit',
     });
 }
+function whatsapp(): string {
+    const phone = (props.customer.phone ?? '')
+        .replace(/\D/g, '')
+        .replace(/^(?!977)(9\d{9})$/, '977$1');
+    const text = `Namaste ${props.customer.name}, your due at our restaurant is ${rs(props.summary.balance)} as of today. Thank you.`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
 function printBill(id: number): void {
     window.open(BillController.print(id).url, '_blank', 'width=380,height=700');
 }
@@ -80,6 +88,22 @@ function printBill(id: number): void {
                     {{ rs(customer.credit_limit)
                     }}{{ customer.is_active ? '' : ' · turned off' }}
                 </p>
+            </div>
+            <div class="ml-auto flex gap-2">
+                <a
+                    :href="CustomerController.statement(customer.id).url"
+                    target="_blank"
+                    class="flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-semibold"
+                    ><Printer class="size-4" /> Statement</a
+                >
+                <a
+                    v-if="customer.phone"
+                    :href="whatsapp()"
+                    target="_blank"
+                    rel="noopener"
+                    class="flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-semibold"
+                    ><MessageCircle class="size-4" /> WhatsApp</a
+                >
             </div>
         </div>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">

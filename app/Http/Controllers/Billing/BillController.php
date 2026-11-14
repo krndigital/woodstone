@@ -124,6 +124,7 @@ class BillController extends Controller
                 'discount_limit' => (int) Settings::get('cashier_discount_limit_percent'),
                 'methods' => array_values(array_map(fn (PaymentMethod $m): array => ['value' => $m->value, 'label' => $m->label()], array_filter(PaymentMethod::cases(), fn (PaymentMethod $m): bool => $m->isEnabled()))),
                 'auto_print' => Settings::bool('auto_print'),
+                'round_off' => Settings::bool('round_off'),
             ],
             'customers' => $user->hasPermission(Permission::ManageDues) ? DuesData::pickList() : [],
             'can' => [

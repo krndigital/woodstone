@@ -6,6 +6,7 @@ export type BillTotals = {
     discountBp: number;
     service: number;
     vat: number;
+    roundOff: number;
     total: number;
 };
 
@@ -22,6 +23,7 @@ export function computeBill(
     discountValue: string,
     servicePercent: string,
     vatPercent: string,
+    roundOff = false,
 ): BillTotals {
     const value = toPaisa(discountValue || '0');
     let discount = 0;
@@ -51,7 +53,13 @@ export function computeBill(
                   ),
         service,
         vat,
-        total: taxable + service + vat,
+        roundOff: roundOff
+            ? Math.floor((taxable + service + vat + 50) / 100) * 100 -
+              (taxable + service + vat)
+            : 0,
+        total: roundOff
+            ? Math.floor((taxable + service + vat + 50) / 100) * 100
+            : taxable + service + vat,
     };
 }
 

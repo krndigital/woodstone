@@ -26,6 +26,7 @@ use LogicException;
  * @property string $service_amount
  * @property string $vat_percent
  * @property string $vat_amount
+ * @property string $round_off
  * @property string $total
  * @property string $paid_amount
  * @property string $due_amount
@@ -58,6 +59,7 @@ class Bill extends Model
             'service_amount' => 'decimal:2',
             'vat_percent' => 'decimal:2',
             'vat_amount' => 'decimal:2',
+            'round_off' => 'decimal:2',
             'total' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'due_amount' => 'decimal:2',
