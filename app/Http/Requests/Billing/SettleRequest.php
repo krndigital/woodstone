@@ -38,6 +38,7 @@ class SettleRequest extends FormRequest
             'payments.*.customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'payments.*.reference' => ['nullable', 'string', 'max:60'],
             'payments.*.qr_checked' => ['boolean'],
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'approver_username' => ['nullable', 'string', 'max:60'],
             'approver_secret' => ['nullable', 'string', 'max:100'],
         ];

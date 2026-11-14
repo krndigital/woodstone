@@ -10,6 +10,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\StockMovementType;
 use App\Models\Bill;
 use App\Models\LedgerEntry;
+use App\Models\LoyaltyEntry;
 use App\Models\SalesReturn;
 use App\Models\StockMovement;
 use App\Models\User;
@@ -75,6 +76,15 @@ final class ReturnSale
                 ])->save();
             } else {
                 CashBook::post(CashBook::accountForMethod($method->value), -$paisa, 'sales_return', $return->id, $by, 'Refund bill '.$bill->number);
+            }
+
+            // A cancelled bill takes back the points it earned (FR-10.6).
+            if ($fullCancel && $bill->customer_id !== null) {
+                $earned = (int) LoyaltyEntry::query()->where('bill_id', $bill->id)->where('type', 'earn')->sum('points');
+                if ($earned > 0) {
+                    $back = new LoyaltyEntry;
+                    $back->forceFill(['customer_id' => $bill->customer_id, 'points' => -$earned, 'type' => 'return', 'bill_id' => $bill->id, 'note' => 'Bill '.$bill->number.' cancelled', 'created_by' => $by->id, 'created_at' => now()])->save();
+                }
             }
 
             if ($restock) {

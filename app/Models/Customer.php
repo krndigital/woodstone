@@ -22,12 +22,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $customer_group_id
  * @property string $credit_limit
  * @property string|null $note
+ * @property string|null $email
+ * @property CarbonInterface|null $birthday
+ * @property CarbonInterface|null $anniversary
+ * @property string|null $preferred_seat
  * @property bool $is_active
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  * @property-read CustomerGroup|null $group
  */
-#[Fillable(['name', 'phone', 'customer_group_id', 'note'])]
+#[Fillable(['name', 'phone', 'customer_group_id', 'note', 'email', 'birthday', 'anniversary', 'preferred_seat'])]
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
@@ -35,7 +39,7 @@ class Customer extends Model
 
     protected function casts(): array
     {
-        return ['credit_limit' => 'decimal:2', 'is_active' => 'boolean'];
+        return ['credit_limit' => 'decimal:2', 'is_active' => 'boolean', 'birthday' => 'date', 'anniversary' => 'date'];
     }
 
     /**

@@ -30,6 +30,10 @@ const props = defineProps<{
         phone: string | null;
         credit_limit: string;
         is_active: boolean;
+        email: string | null;
+        birthday: string | null;
+        anniversary: string | null;
+        preferred_seat: string | null;
     };
     summary: {
         balance: string;
@@ -39,6 +43,24 @@ const props = defineProps<{
         oldest: string | null;
     };
     entries: Entry[];
+    history: {
+        visits: number;
+        spent: string;
+        last_visit: string | null;
+        favourites: { name: string; qty: number }[];
+        spent_12m: string;
+        tier: string;
+    };
+    points: number;
+    pointValue: string;
+    loyalty: {
+        id: number;
+        points: number;
+        type: string;
+        note: string | null;
+        expires_on: string | null;
+        created_at: string;
+    }[];
 }>();
 
 defineOptions({
@@ -106,6 +128,70 @@ function printBill(id: number): void {
                 >
             </div>
         </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-xl border p-3">
+                <div class="text-xs text-muted-foreground">Visits</div>
+                <div class="text-xl font-bold tabular-nums">
+                    {{ history.visits }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                    last
+                    {{
+                        history.last_visit
+                            ? history.last_visit.slice(0, 10)
+                            : '—'
+                    }}
+                </div>
+            </div>
+            <div class="rounded-xl border p-3">
+                <div class="text-xs text-muted-foreground">Total spent</div>
+                <div class="text-xl font-bold tabular-nums">
+                    {{ rs(history.spent) }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                    12 months {{ rs(history.spent_12m) }}
+                </div>
+            </div>
+            <div class="rounded-xl border p-3">
+                <div class="text-xs text-muted-foreground">Tier</div>
+                <div
+                    class="text-xl font-bold"
+                    :class="
+                        history.tier === 'Gold'
+                            ? 'text-amber-600'
+                            : history.tier === 'Silver'
+                              ? 'text-slate-500'
+                              : ''
+                    "
+                >
+                    {{ history.tier }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                    {{
+                        customer.preferred_seat
+                            ? `likes ${customer.preferred_seat}`
+                            : ''
+                    }}
+                </div>
+            </div>
+            <div class="rounded-xl border p-3">
+                <div class="text-xs text-muted-foreground">Loyalty points</div>
+                <div class="text-xl font-bold tabular-nums">{{ points }}</div>
+                <div class="text-xs text-muted-foreground">
+                    worth
+                    {{ rs(Math.round(points * Number(pointValue) * 100)) }}
+                </div>
+            </div>
+        </div>
+        <p v-if="history.favourites.length" class="text-sm">
+            <b>Favourites:</b>
+            {{ history.favourites.map((f) => `${f.name} (${f.qty})`).join(', ')
+            }}<span v-if="customer.birthday">
+                · <b>Birthday</b> {{ customer.birthday.slice(5) }}</span
+            ><span v-if="customer.anniversary">
+                · <b>Anniversary</b> {{ customer.anniversary.slice(5) }}</span
+            >
+        </p>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div class="rounded-xl border p-3">
                 <div class="text-xs text-muted-foreground">Due now</div>
@@ -212,5 +298,40 @@ function printBill(id: number): void {
                 </tbody>
             </table>
         </div>
+        <details class="rounded-xl border p-3">
+            <summary class="cursor-pointer text-sm font-semibold">
+                Points history
+            </summary>
+            <div class="mt-2 flex flex-col divide-y text-sm">
+                <div
+                    v-for="l in loyalty"
+                    :key="l.id"
+                    class="flex justify-between py-1.5"
+                >
+                    <span
+                        >{{ l.created_at.slice(0, 10) }} · {{ l.type
+                        }}<span class="text-xs text-muted-foreground">
+                            {{ l.note
+                            }}{{
+                                l.expires_on ? ` · expires ${l.expires_on}` : ''
+                            }}</span
+                        ></span
+                    >
+                    <span
+                        class="font-semibold tabular-nums"
+                        :class="
+                            l.points < 0 ? 'text-red-600' : 'text-green-700'
+                        "
+                        >{{ l.points > 0 ? '+' : '' }}{{ l.points }}</span
+                    >
+                </div>
+                <p
+                    v-if="loyalty.length === 0"
+                    class="py-2 text-muted-foreground"
+                >
+                    No points yet.
+                </p>
+            </div>
+        </details>
     </div>
 </template>

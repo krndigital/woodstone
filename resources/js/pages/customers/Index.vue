@@ -31,6 +31,12 @@ type Customer = {
     age_31_60: string;
     age_60_plus: string;
     oldest: string | null;
+    email: string | null;
+    birthday: string | null;
+    anniversary: string | null;
+    preferred_seat: string | null;
+    points: number;
+    tier: 'Regular' | 'Silver' | 'Gold';
 };
 
 const props = defineProps<{
@@ -44,6 +50,12 @@ const props = defineProps<{
     groups: { id: number; name: string }[];
     methods: { value: 'cash' | 'qr' | 'card'; label: string }[];
     defaultLimit: string;
+    birthdays: {
+        name: string;
+        phone: string | null;
+        what: string;
+        date: string;
+    }[];
     can: { approve: boolean };
 }>();
 
@@ -79,6 +91,10 @@ const editForm = useForm({
     note: '',
     credit_limit: '',
     is_active: true,
+    email: '',
+    birthday: '',
+    anniversary: '',
+    preferred_seat: '',
 });
 function openEdit(c: Customer | null): void {
     current.value = c;
@@ -89,6 +105,10 @@ function openEdit(c: Customer | null): void {
     editForm.note = c?.note ?? '';
     editForm.credit_limit = c?.credit_limit ?? props.defaultLimit;
     editForm.is_active = c?.is_active ?? true;
+    editForm.email = c?.email ?? '';
+    editForm.birthday = c?.birthday ?? '';
+    editForm.anniversary = c?.anniversary ?? '';
+    editForm.preferred_seat = c?.preferred_seat ?? '';
     panel.value = 'edit';
 }
 function saveCustomer(): void {
@@ -192,6 +212,18 @@ function addGroup(): void {
             >
         </div>
 
+        <div
+            v-if="birthdays.length"
+            class="flex flex-wrap items-center gap-2 rounded-xl border border-pink-300 bg-pink-50 p-3 text-sm text-pink-900 dark:bg-pink-950/40 dark:text-pink-100"
+        >
+            <b>This week:</b>
+            <span
+                v-for="b in birthdays"
+                :key="b.name + b.what"
+                class="rounded-full bg-background px-2 py-0.5"
+                >{{ b.what }} · {{ b.name }} ({{ b.date.slice(5) }})</span
+            >
+        </div>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div class="rounded-xl border p-3">
                 <div class="text-xs text-muted-foreground">Total due</div>
@@ -292,7 +324,23 @@ function addGroup(): void {
                                 }}{{ c.is_active ? '' : ' · turned off' }}
                             </div>
                         </td>
-                        <td class="p-3">{{ c.group ?? '—' }}</td>
+                        <td class="p-3">
+                            {{ c.group ?? '—' }}
+                            <div class="text-xs">
+                                <span
+                                    class="font-semibold"
+                                    :class="
+                                        c.tier === 'Gold'
+                                            ? 'text-amber-600'
+                                            : c.tier === 'Silver'
+                                              ? 'text-slate-500'
+                                              : 'text-muted-foreground'
+                                    "
+                                    >{{ c.tier }}</span
+                                >
+                                · {{ c.points }} pts
+                            </div>
+                        </td>
                         <td
                             class="p-3 text-right font-bold tabular-nums"
                             :class="
@@ -426,6 +474,42 @@ function addGroup(): void {
                             Only a manager can change the limit.
                         </p>
                         <InputError :message="editForm.errors.credit_limit" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="grid gap-2">
+                            <Label for="em">Email</Label
+                            ><Input
+                                id="em"
+                                v-model="editForm.email"
+                                type="email"
+                            /><InputError :message="editForm.errors.email" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="ps">Preferred seat</Label
+                            ><Input
+                                id="ps"
+                                v-model="editForm.preferred_seat"
+                                placeholder="e.g. Cabin 2"
+                            />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="bd">Birthday</Label
+                            ><Input
+                                id="bd"
+                                v-model="editForm.birthday"
+                                type="date"
+                            /><InputError :message="editForm.errors.birthday" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="an">Anniversary</Label
+                            ><Input
+                                id="an"
+                                v-model="editForm.anniversary"
+                                type="date"
+                            /><InputError
+                                :message="editForm.errors.anniversary"
+                            />
+                        </div>
                     </div>
                     <div class="grid gap-2">
                         <Label for="no">Note</Label

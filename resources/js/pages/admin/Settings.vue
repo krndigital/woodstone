@@ -21,6 +21,12 @@ type AppSettings = {
     payment_card: boolean;
     payment_bank: boolean;
     round_off: boolean;
+    loyalty_enabled: boolean;
+    loyalty_points_per_100: number;
+    loyalty_point_value: string;
+    loyalty_expiry_days: number;
+    tier_silver_spend: string;
+    tier_gold_spend: string;
     payment_due: boolean;
     default_credit_limit: string;
     auto_print: boolean;
@@ -273,6 +279,61 @@ function save(): void {
                 </div>
             </section>
         </div>
+
+        <section class="grid gap-4 rounded-xl border p-5 sm:grid-cols-3">
+            <h2 class="font-bold sm:col-span-3">Loyalty points and tiers</h2>
+            <label class="flex items-center gap-2 text-sm sm:col-span-3"
+                ><input
+                    v-model="form.loyalty_enabled"
+                    type="checkbox"
+                    class="size-4"
+                />
+                Give loyalty points</label
+            >
+            <div class="grid gap-2">
+                <Label for="lp">Points per Rs 100 paid</Label
+                ><Input
+                    id="lp"
+                    v-model.number="form.loyalty_points_per_100"
+                    type="number"
+                    min="0"
+                    max="100"
+                /><InputError :message="form.errors.loyalty_points_per_100" />
+            </div>
+            <div class="grid gap-2">
+                <Label for="lv">1 point is worth (Rs)</Label
+                ><Input
+                    id="lv"
+                    v-model="form.loyalty_point_value"
+                    inputmode="decimal"
+                /><InputError :message="form.errors.loyalty_point_value" />
+            </div>
+            <div class="grid gap-2">
+                <Label for="le">Points expire after (days)</Label
+                ><Input
+                    id="le"
+                    v-model.number="form.loyalty_expiry_days"
+                    type="number"
+                    min="30"
+                /><InputError :message="form.errors.loyalty_expiry_days" />
+            </div>
+            <div class="grid gap-2">
+                <Label for="ts">Silver from (Rs spent in 12 months)</Label
+                ><Input
+                    id="ts"
+                    v-model="form.tier_silver_spend"
+                    inputmode="decimal"
+                /><InputError :message="form.errors.tier_silver_spend" />
+            </div>
+            <div class="grid gap-2">
+                <Label for="tg">Gold from (Rs spent in 12 months)</Label
+                ><Input
+                    id="tg"
+                    v-model="form.tier_gold_spend"
+                    inputmode="decimal"
+                /><InputError :message="form.errors.tier_gold_spend" />
+            </div>
+        </section>
 
         <section class="grid gap-4 rounded-xl border p-5 sm:grid-cols-2">
             <h2 class="font-bold sm:col-span-2">

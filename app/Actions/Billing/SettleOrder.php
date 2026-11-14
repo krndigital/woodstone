@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Support\Audit;
 use App\Support\BillCalculator;
 use App\Support\CashBook;
+use App\Support\Loyalty;
 use App\Support\ManagerApproval;
 use App\Support\Money;
 use App\Support\NumberSequence;
@@ -40,8 +41,9 @@ final class SettleOrder
      * @param  array{type: string|null, value: string, reason: string|null}  $discount
      * @param  list<array{payer: string|null, method: string, amount: string, customer_id: int|null, reference: string|null, qr_checked: bool}>  $payments
      * @param  array{username: string|null, secret: string|null}  $approval
+     * @param  int|null  $customerId  guest the bill belongs to (visit history, loyalty points, FR-10.5/10.6)
      */
-    public function handle(Order $order, User $cashier, array $discount, array $payments, array $approval): Bill
+    public function handle(Order $order, User $cashier, array $discount, array $payments, array $approval, ?int $customerId = null): Bill
     {
         EnsureOrderOpen::check($order);
 
@@ -75,6 +77,7 @@ final class SettleOrder
             // Payments must add up to the bill exactly.
             $sum = 0;
             $duePerCustomer = [];
+            $pointsPaisa = 0;
             foreach ($payments as $i => $p) {
                 $method = PaymentMethod::from($p['method']);
                 $amount = Money::toPaisa($p['amount']);
@@ -98,6 +101,26 @@ final class SettleOrder
                     }
                     $duePerCustomer[$p['customer_id']] = ($duePerCustomer[$p['customer_id']] ?? 0) + $amount;
                 }
+                if ($method === PaymentMethod::Points) {
+                    $pointsPaisa += $amount;
+                }
+            }
+
+            // Points pay at a fixed rupee value; the bill must belong to the customer who has them.
+            $billCustomer = $customerId !== null ? Customer::query()->whereKey($customerId)->lockForUpdate()->first() : null;
+            $pointsUsed = 0;
+            if ($pointsPaisa > 0) {
+                $value = Loyalty::pointValue();
+                if ($billCustomer === null) {
+                    throw ValidationException::withMessages(['customer_id' => __('Choose the customer whose points are used.')]);
+                }
+                if ($value <= 0 || $pointsPaisa % $value !== 0) {
+                    throw ValidationException::withMessages(['payments' => __('Points must cover whole points (1 point = Rs :v).', ['v' => Money::fromPaisa($value)])]);
+                }
+                $pointsUsed = intdiv($pointsPaisa, $value);
+                if ($pointsUsed > Loyalty::balance($billCustomer, $cashier)) {
+                    throw ValidationException::withMessages(['payments' => __(':name has only :p points.', ['name' => $billCustomer->name, 'p' => Loyalty::balance($billCustomer)])]);
+                }
             }
 
             if ($sum !== $calc['total']) {
@@ -118,7 +141,7 @@ final class SettleOrder
 
             $approver = $needsApproval === [] ? null : ManagerApproval::resolve($cashier, $approval['username'], $approval['secret']);
 
-            $paid = $sum - array_sum($duePerCustomer);
+            $paid = $sum - array_sum($duePerCustomer) - $pointsPaisa;
             $bill = new Bill;
             $bill->forceFill([
                 'number' => NumberSequence::nextBillNumber(),
@@ -138,6 +161,7 @@ final class SettleOrder
                 'paid_amount' => Money::fromPaisa($paid),
                 'due_amount' => Money::fromPaisa(array_sum($duePerCustomer)),
                 'cashier_id' => $cashier->id,
+                'customer_id' => $billCustomer->id ?? array_key_first($duePerCustomer),
                 'print_count' => 0,
             ])->save();
 
@@ -156,7 +180,7 @@ final class SettleOrder
                     'created_at' => now(),
                 ])->save();
 
-                if ($method !== PaymentMethod::Due) {
+                if ($method !== PaymentMethod::Due && $method !== PaymentMethod::Points) {
                     CashBook::post(CashBook::accountForMethod($method->value), Money::toPaisa($p['amount']), 'bill_payment', $payment->id, $cashier, 'Bill '.$bill->number);
                 }
             }
@@ -172,6 +196,14 @@ final class SettleOrder
                     'created_by' => $cashier->id,
                     'created_at' => now(),
                 ])->save();
+            }
+
+            $loyaltyCustomer = $billCustomer ?? (count($customers) === 1 ? reset($customers) : null);
+            if ($loyaltyCustomer instanceof Customer) {
+                if ($pointsUsed > 0) {
+                    Loyalty::redeem($loyaltyCustomer, $pointsUsed, $bill, $cashier);
+                }
+                Loyalty::earn($loyaltyCustomer, $bill, $sum - $pointsPaisa, $cashier);
             }
 
             $this->deductStock->handle($order, $bill, $cashier);

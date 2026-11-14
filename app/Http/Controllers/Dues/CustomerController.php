@@ -16,14 +16,18 @@ use App\Http\Requests\Dues\ReceivePaymentRequest;
 use App\Models\Customer;
 use App\Models\CustomerGroup;
 use App\Models\LedgerEntry;
+use App\Models\LoyaltyEntry;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\DuesData;
+use App\Support\Loyalty;
 use App\Support\Money;
 use App\Support\Settings;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,7 +45,25 @@ class CustomerController extends Controller
 
         $customers = [];
         $totals = ['balance' => 0, 'age_0_30' => 0, 'age_31_60' => 0, 'age_60_plus' => 0];
+        $points = DB::table('loyalty_entries')->groupBy('customer_id')->selectRaw('customer_id, SUM(points) as p')->pluck('p', 'customer_id');
+        $spent = [];
+        foreach (DB::table('bills')->whereNotNull('customer_id')->where('created_at', '>=', now()->subYear())->get(['customer_id', 'total']) as $b) {
+            $spent[(int) $b->customer_id] = ($spent[(int) $b->customer_id] ?? 0) + Money::toPaisa((string) $b->total);
+        }
+        $birthdays = [];
         foreach (Customer::query()->with('group')->orderBy('name')->get() as $c) {
+            foreach (['birthday' => 'Birthday', 'anniversary' => 'Anniversary'] as $field => $label) {
+                $d = $c->{$field};
+                if ($d instanceof CarbonInterface) {
+                    $next = $d->setYear((int) now()->format('Y'));
+                    if ($next->lessThan(now()->startOfDay())) {
+                        $next = $next->addYear();
+                    }
+                    if ($next->lessThanOrEqualTo(now()->addDays(7)->endOfDay())) {
+                        $birthdays[] = ['name' => $c->name, 'phone' => $c->phone, 'what' => $label, 'date' => $next->toDateString()];
+                    }
+                }
+            }
             $s = DuesData::summary($c);
             foreach ($totals as $k => $v) {
                 $totals[$k] = $v + $s[$k];
@@ -60,6 +82,12 @@ class CustomerController extends Controller
                 'age_31_60' => Money::fromPaisa($s['age_31_60']),
                 'age_60_plus' => Money::fromPaisa($s['age_60_plus']),
                 'oldest' => $s['oldest'],
+                'email' => $c->email,
+                'birthday' => $c->birthday?->toDateString(),
+                'anniversary' => $c->anniversary?->toDateString(),
+                'preferred_seat' => $c->preferred_seat,
+                'points' => (int) ($points[$c->id] ?? 0),
+                'tier' => Loyalty::tier($spent[$c->id] ?? 0),
             ];
         }
 
@@ -69,6 +97,7 @@ class CustomerController extends Controller
             'groups' => CustomerGroup::query()->orderBy('name')->get(['id', 'name'])->toArray(),
             'methods' => array_values(array_map(fn (PaymentMethod $m): array => ['value' => $m->value, 'label' => $m->label()], array_filter(PaymentMethod::receivable(), fn (PaymentMethod $m): bool => $m->isEnabled()))),
             'defaultLimit' => Settings::string('default_credit_limit'),
+            'birthdays' => $birthdays,
             'can' => ['approve' => $user->hasPermission(Permission::ApproveOverride)],
         ]);
     }
@@ -102,8 +131,19 @@ class CustomerController extends Controller
             ];
         }
 
+        $history = Loyalty::history($customer);
+        $loyalty = LoyaltyEntry::query()->where('customer_id', $customer->id)->latest('id')->limit(50)->get()->map(fn (LoyaltyEntry $l): array => [
+            'id' => $l->id, 'points' => $l->points, 'type' => $l->type, 'note' => $l->note,
+            'expires_on' => $l->expires_on?->toDateString(), 'created_at' => $l->created_at->toIso8601String(),
+        ])->values()->all();
+
         return Inertia::render('customers/Show', [
-            'customer' => ['id' => $customer->id, 'name' => $customer->name, 'phone' => $customer->phone, 'credit_limit' => $customer->credit_limit, 'is_active' => $customer->is_active],
+            'customer' => ['id' => $customer->id, 'name' => $customer->name, 'phone' => $customer->phone, 'credit_limit' => $customer->credit_limit, 'is_active' => $customer->is_active,
+                'email' => $customer->email, 'birthday' => $customer->birthday?->toDateString(), 'anniversary' => $customer->anniversary?->toDateString(), 'preferred_seat' => $customer->preferred_seat],
+            'history' => [...$history, 'spent' => Money::fromPaisa($history['spent']), 'spent_12m' => Money::fromPaisa($history['spent_12m'])],
+            'points' => Loyalty::balance($customer),
+            'pointValue' => Settings::string('loyalty_point_value'),
+            'loyalty' => $loyalty,
             'summary' => array_map(fn (int|string|null $v): ?string => is_int($v) ? Money::fromPaisa($v) : $v, DuesData::summary($customer)),
             'entries' => array_reverse($rows),
         ]);
@@ -199,7 +239,7 @@ class CustomerController extends Controller
         $running = 0;
         foreach (LedgerEntry::query()->with('bill:id,number')->where('customer_id', $customer->id)->orderBy('id')->get() as $e) {
             $running += Money::toPaisa($e->amount);
-            $rows[] = ['date' => $e->created_at, 'what' => $e->type->label(), 'ref' => $e->bill?->number ?? $e->reference, 'note' => $e->note, 'amount' => $e->amount, 'balance' => Money::fromPaisa($running)];
+            $rows[] = ['date' => $e->created_at, 'what' => $e->type->label(), 'ref' => $e->bill->number ?? $e->reference, 'note' => $e->note, 'amount' => $e->amount, 'balance' => Money::fromPaisa($running)];
         }
 
         return view('print.statement', ['customer' => $customer, 'rows' => $rows, 'summary' => DuesData::summary($customer), 'settings' => Settings::all()]);
@@ -230,7 +270,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * @return array{name: string, phone: string|null, customer_group_id: int|null, note: string|null}
+     * @return array{name: string, phone: string|null, customer_group_id: int|null, note: string|null, email: string|null, birthday: string|null, anniversary: string|null, preferred_seat: string|null}
      */
     private function details(CustomerRequest $request): array
     {
@@ -239,6 +279,10 @@ class CustomerController extends Controller
             'phone' => $request->filled('phone') ? $request->string('phone')->toString() : null,
             'customer_group_id' => $request->filled('customer_group_id') ? $request->integer('customer_group_id') : null,
             'note' => $request->filled('note') ? $request->string('note')->trim()->toString() : null,
+            'email' => $request->filled('email') ? $request->string('email')->trim()->lower()->toString() : null,
+            'birthday' => $request->filled('birthday') ? $request->string('birthday')->toString() : null,
+            'anniversary' => $request->filled('anniversary') ? $request->string('anniversary')->toString() : null,
+            'preferred_seat' => $request->filled('preferred_seat') ? $request->string('preferred_seat')->trim()->toString() : null,
         ];
     }
 }

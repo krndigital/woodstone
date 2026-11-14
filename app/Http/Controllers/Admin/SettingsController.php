@@ -39,10 +39,20 @@ class SettingsController extends Controller
             $data[$key] = $trimmed === '' ? '0' : $trimmed;
         }
         $data['default_credit_limit'] = Money::fromPaisa(Money::toPaisa((string) $data['default_credit_limit']));
-        foreach (['payment_qr', 'payment_card', 'payment_due', 'auto_print', 'guest_call_any_status', 'payment_bank', 'round_off'] as $key) {
+        foreach (['payment_qr', 'payment_card', 'payment_due', 'auto_print', 'guest_call_any_status', 'payment_bank', 'round_off', 'loyalty_enabled'] as $key) {
             $data[$key] = $request->boolean($key);
         }
         $data['cashier_discount_limit_percent'] = (int) $data['cashier_discount_limit_percent'];
+        foreach (['loyalty_point_value', 'tier_silver_spend', 'tier_gold_spend'] as $key) {
+            if (isset($data[$key])) {
+                $data[$key] = Money::fromPaisa(Money::toPaisa((string) $data[$key]));
+            }
+        }
+        foreach (['loyalty_points_per_100', 'loyalty_expiry_days'] as $key) {
+            if (isset($data[$key])) {
+                $data[$key] = (int) $data[$key];
+            }
+        }
 
         /** @var User $user */
         $user = $request->user();

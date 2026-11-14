@@ -31,6 +31,10 @@ class CustomerRequest extends DuesRequest
             'note' => ['nullable', 'string', 'max:200'],
             'credit_limit' => ['nullable', 'regex:/^\d{1,8}(\.\d{1,2})?$/'],
             'is_active' => ['boolean'],
+            'email' => ['nullable', 'email:rfc', 'max:120'],
+            'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
+            'anniversary' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'preferred_seat' => ['nullable', 'string', 'max:40'],
         ];
     }
 }

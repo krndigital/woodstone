@@ -7,6 +7,7 @@ namespace App\Support;
 use App\Models\Customer;
 use App\Models\LedgerEntry;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Customer balances and ageing (FR-10.3). Payments are matched to the oldest dues first.
@@ -58,11 +59,12 @@ final class DuesData
     /**
      * Active customers for the billing screen.
      *
-     * @return list<array{id: int, name: string, phone: string|null, balance: string, credit_limit: string}>
+     * @return list<array{id: int, name: string, phone: string|null, balance: string, credit_limit: string, points: int}>
      */
     public static function pickList(): array
     {
         $list = [];
+        $points = DB::table('loyalty_entries')->groupBy('customer_id')->selectRaw('customer_id, SUM(points) as p')->pluck('p', 'customer_id');
         foreach (Customer::query()->where('is_active', true)->orderBy('name')->get() as $c) {
             $list[] = [
                 'id' => $c->id,
@@ -70,6 +72,7 @@ final class DuesData
                 'phone' => $c->phone,
                 'balance' => Money::fromPaisa($c->balancePaisa()),
                 'credit_limit' => $c->credit_limit,
+                'points' => (int) ($points[$c->id] ?? 0),
             ];
         }
 

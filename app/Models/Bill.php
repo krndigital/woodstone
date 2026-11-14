@@ -31,6 +31,7 @@ use LogicException;
  * @property string $paid_amount
  * @property string $due_amount
  * @property int $cashier_id
+ * @property int|null $customer_id
  * @property int $print_count
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at

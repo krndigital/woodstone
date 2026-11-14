@@ -6,6 +6,7 @@ import {
     CreditCard,
     Gift,
     Landmark,
+    Star,
     Minus,
     Plus,
     QrCode,
@@ -22,7 +23,7 @@ import { computeBill, paisaToInput, splitByWeights } from '@/lib/bill';
 import { rs, toPaisa } from '@/lib/money';
 import { index as posIndex } from '@/routes/pos';
 
-type Method = 'cash' | 'qr' | 'card' | 'bank' | 'due';
+type Method = 'cash' | 'qr' | 'card' | 'bank' | 'due' | 'points';
 type Line = {
     id: number;
     name: string;
@@ -38,6 +39,7 @@ type Customer = {
     phone: string | null;
     balance: string;
     credit_limit: string;
+    points: number;
 };
 type Person = {
     payer: string;
@@ -79,13 +81,31 @@ const ICON: Record<Method, typeof Banknote> = {
     qr: QrCode,
     card: CreditCard,
     bank: Landmark,
+    points: Star,
     due: UserRound,
 };
 const lines = computed(() =>
     props.order.items.filter((l) => l.status !== 'void'),
 );
+/* the guest this bill belongs to: visit history and loyalty points (FR-10.4 to 10.6) */
+const billCustomer = ref<Customer | null>(null);
+const billCustomerQuery = ref('');
+const billCustomerMatches = computed(() => {
+    const q = billCustomerQuery.value.trim().toLowerCase();
+    if (q === '') return [];
+    return props.customers
+        .filter(
+            (c) =>
+                c.name.toLowerCase().includes(q) || (c.phone ?? '').includes(q),
+        )
+        .slice(0, 5);
+});
 const methods = computed(() =>
-    props.settings.methods.filter((m) => m.value !== 'due' || props.can.due),
+    props.settings.methods.filter(
+        (m) =>
+            (m.value !== 'due' || props.can.due) &&
+            (m.value !== 'points' || billCustomer.value !== null),
+    ),
 );
 
 /* discount */
@@ -265,6 +285,7 @@ const form = useForm({
         reference: string | null;
         qr_checked: boolean;
     }[],
+    customer_id: null as number | null,
     approver_username: '',
     approver_secret: '',
 });
@@ -275,6 +296,7 @@ function pay(): void {
     form.discount_type = totals.value.discount > 0 ? discountType.value : null;
     form.discount_value = totals.value.discount > 0 ? discountValue.value : '';
     form.discount_reason = discountReason.value;
+    form.customer_id = billCustomer.value?.id ?? null;
     form.payments =
         totals.value.total === 0
             ? []
@@ -313,6 +335,54 @@ function pay(): void {
                         Order #{{ order.number }} · {{ order.guests }} guests
                     </p>
                 </div>
+            </div>
+
+            <div
+                v-if="customers.length"
+                class="flex flex-col gap-2 rounded-xl border p-3"
+            >
+                <div
+                    v-if="billCustomer"
+                    class="flex items-center justify-between text-sm"
+                >
+                    <span
+                        ><b>{{ billCustomer.name }}</b>
+                        {{ billCustomer.phone ?? '' }} ·
+                        {{ billCustomer.points }} points</span
+                    >
+                    <button
+                        type="button"
+                        class="text-xs underline"
+                        @click="billCustomer = null"
+                    >
+                        Remove
+                    </button>
+                </div>
+                <template v-else>
+                    <Input
+                        v-model="billCustomerQuery"
+                        class="h-10"
+                        placeholder="Customer phone or name (optional, for points and history)"
+                    />
+                    <button
+                        v-for="c in billCustomerMatches"
+                        :key="c.id"
+                        type="button"
+                        class="flex justify-between rounded-md border px-3 py-2 text-left text-sm hover:bg-muted"
+                        @click="
+                            billCustomer = c;
+                            billCustomerQuery = '';
+                        "
+                    >
+                        <span
+                            >{{ c.name }}
+                            <span class="text-xs text-muted-foreground">{{
+                                c.phone
+                            }}</span></span
+                        ><span class="text-xs">{{ c.points }} pts</span>
+                    </button>
+                </template>
+                <InputError :message="errorFor('customer_id')" />
             </div>
 
             <!-- how to pay -->

@@ -153,6 +153,7 @@ class BillController extends Controller
                 'username' => $request->filled('approver_username') ? $request->string('approver_username')->toString() : null,
                 'secret' => $request->filled('approver_secret') ? $request->string('approver_secret')->toString() : null,
             ],
+            $request->filled('customer_id') ? $request->integer('customer_id') : null,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Bill :number paid.', ['number' => $bill->number])]);

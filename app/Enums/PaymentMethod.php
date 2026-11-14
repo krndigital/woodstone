@@ -13,6 +13,7 @@ enum PaymentMethod: string
     case Card = 'card';
     case Bank = 'bank';
     case Due = 'due';
+    case Points = 'points';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum PaymentMethod: string
             self::Card => 'Card',
             self::Bank => 'Bank transfer',
             self::Due => 'On due',
+            self::Points => 'Loyalty points',
         };
     }
 
@@ -33,6 +35,7 @@ enum PaymentMethod: string
             self::Card => Settings::bool('payment_card'),
             self::Bank => Settings::bool('payment_bank'),
             self::Due => Settings::bool('payment_due'),
+            self::Points => Settings::bool('loyalty_enabled'),
         };
     }
 
