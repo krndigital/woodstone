@@ -9,6 +9,7 @@ use App\Enums\TableStatus;
 use App\Models\DiningTable;
 use App\Models\Zone;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Woodstone floor: garden tables, indoor tables and wooden cabins C1–C4.
@@ -28,7 +29,7 @@ class FloorSeeder extends Seeder
 
             for ($i = 1; $i <= $count; $i++) {
                 $table = new DiningTable(['zone_id' => $zone->id, 'code' => $prefix.$i, 'kind' => $kind, 'seats' => $seats[$i - 1], 'sort_order' => $i]);
-                $table->forceFill(['status' => TableStatus::Free, 'is_active' => true])->save();
+                $table->forceFill(['status' => TableStatus::Free, 'is_active' => true, 'qr_token' => Str::random(32)])->save();
             }
         }
     }

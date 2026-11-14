@@ -13,6 +13,8 @@ void createInertiaApp({
         switch (true) {
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name.startsWith('guest/'):
+                return null;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:
@@ -38,3 +40,13 @@ initializeTheme();
 
 // This will listen for flash toast data from the server...
 initializeFlashToast();
+
+// Installable on phones and tablets (waiter app). No offline caching.
+if (
+    'serviceWorker' in navigator &&
+    (location.protocol === 'https:' || location.hostname === 'localhost')
+) {
+    window.addEventListener('load', () => {
+        void navigator.serviceWorker.register('/sw.js');
+    });
+}

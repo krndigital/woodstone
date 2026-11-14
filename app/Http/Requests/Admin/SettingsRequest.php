@@ -38,6 +38,7 @@ class SettingsRequest extends FormRequest
             'payment_due' => ['boolean'],
             'default_credit_limit' => ['required', 'regex:/^\d{1,7}(\.\d{1,2})?$/'],
             'auto_print' => ['boolean'],
+            'guest_call_any_status' => ['boolean'],
             'fiscal_year_label' => ['required', 'regex:/^\d{4}\/\d{2}$/'],
             'fiscal_year_starts_on' => ['required', 'date_format:Y-m-d'],
         ];

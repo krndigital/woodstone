@@ -213,7 +213,7 @@ final class ReportBuilder
             $seats[$key]['covers'] += (int) $b->guests;
             $seats[$key]['sales'] += Money::toPaisa((string) $b->total);
         }
-        $rows = array_values(array_map(fn (array $r): array => [...$r, 'avg' => $r['bills'] > 0 ? intdiv($r['sales'], $r['bills']) : 0], $seats));
+        $rows = array_values(array_map(fn (array $r): array => [...$r, 'avg' => intdiv($r['sales'], $r['bills'])], $seats));
         usort($rows, fn (array $a, array $b): int => $b['sales'] <=> $a['sales']);
 
         return ['columns' => self::cols([['seat', 'Seat'], ['zone', 'Zone'], ['bills', 'Bills', 'int'], ['covers', 'Covers', 'int'], ['sales', 'Sales', 'money'], ['avg', 'Average bill', 'money']]), 'rows' => $rows, 'totals' => self::sum($rows, ['bills', 'covers', 'sales'], 'seat'), 'notes' => []];
@@ -284,12 +284,12 @@ final class ReportBuilder
      */
     private static function dayClose(Period $p): array
     {
-        $rows = DayClose::query()->with(['opener:id,name', 'closer:id,name'])->whereBetween('business_date', [$p->fromDate(), $p->toDate()])->orderBy('business_date')->get()
+        $rows = array_values(DayClose::query()->with(['opener:id,name', 'closer:id,name'])->whereBetween('business_date', [$p->fromDate(), $p->toDate()])->orderBy('business_date')->get()
             ->map(fn (DayClose $d): array => [
-                'date' => $d->business_date->toDateString(), 'opened_by' => $d->opener->name, 'closed_by' => $d->closer?->name ?? 'Still open',
+                'date' => $d->business_date->toDateString(), 'opened_by' => $d->opener->name, 'closed_by' => $d->closer->name ?? 'Still open',
                 'opening' => Money::toPaisa($d->opening_cash), 'expected' => Money::toPaisa($d->expected_cash ?? '0'),
                 'counted' => Money::toPaisa($d->counted_cash ?? '0'), 'difference' => Money::toPaisa($d->difference ?? '0'),
-            ])->values()->all();
+            ])->all());
 
         return ['columns' => self::cols([['date', 'Date'], ['opened_by', 'Opened by'], ['closed_by', 'Closed by'], ['opening', 'Opening', 'money'], ['expected', 'Expected', 'money'], ['counted', 'Counted', 'money'], ['difference', 'Difference', 'money']]), 'rows' => $rows, 'totals' => self::sum($rows, ['difference'], 'date'), 'notes' => []];
     }

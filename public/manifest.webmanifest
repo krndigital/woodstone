@@ -1,0 +1,24 @@
+{
+    "name": "WoodStone RMS",
+    "short_name": "WoodStone",
+    "description": "Woodstone Restaurant & Cafe — orders, kitchen and billing",
+    "start_url": "/pos",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#ffffff",
+    "theme_color": "#ea580c",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ]
+}

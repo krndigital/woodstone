@@ -8,6 +8,8 @@ use App\Http\Controllers\Billing\BillController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dues\CustomerController;
 use App\Http\Controllers\Floor\FloorController;
+use App\Http\Controllers\Guest\GuestController;
+use App\Http\Controllers\Guest\ServiceCallController;
 use App\Http\Controllers\Kitchen\KitchenController;
 use App\Http\Controllers\Menu\MenuCategoryController;
 use App\Http\Controllers\Menu\MenuController;
@@ -31,6 +33,13 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
+
+// Public QR page per seat: live menu and call waiter (step 14, FR-5.2, M16).
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('t/{token}', [GuestController::class, 'show'])->name('guest.table');
+    Route::get('t/{token}/calls/{publicId}', [GuestController::class, 'status'])->name('guest.calls.status');
+    Route::post('t/{token}/calls', [GuestController::class, 'call'])->middleware('throttle:6,1')->name('guest.calls.store');
+});
 
 // Quick PIN switch on registered terminals (D-06).
 Route::middleware('guest')->group(function () {
@@ -67,6 +76,8 @@ Route::middleware('auth')->group(function () {
         Route::put('zones/{zone}', [FloorController::class, 'updateZone'])->name('zones.update');
         Route::post('tables', [FloorController::class, 'storeTable'])->name('tables.store');
         Route::put('tables/{table}', [FloorController::class, 'updateTable'])->name('tables.update');
+        Route::post('tables/{table}/qr', [FloorController::class, 'regenerateQr'])->name('tables.qr');
+        Route::get('qr-cards', [FloorController::class, 'qrCards'])->name('qr-cards');
     });
 
     // POS orders + KOT (step 5).
@@ -178,6 +189,14 @@ Route::middleware('auth')->group(function () {
         Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
         Route::put('recipes/{menuItem}', [RecipeController::class, 'update'])->name('recipes.update');
     });
+
+    // Guest calls, staff side (step 14).
+    Route::middleware('can:pos.use')->prefix('calls')->name('calls.')->group(function () {
+        Route::get('pending', [ServiceCallController::class, 'pending'])->name('pending');
+        Route::patch('{call}/accept', [ServiceCallController::class, 'accept'])->name('accept');
+        Route::patch('{call}/done', [ServiceCallController::class, 'done'])->name('done');
+    });
+    Route::post('calls/ping', [ServiceCallController::class, 'ping'])->middleware('throttle:30,1')->name('calls.ping');
 
     // Kitchen & bar display (step 6).
     Route::middleware('can:kitchen.view')->prefix('kitchen')->name('kitchen.')->group(function () {

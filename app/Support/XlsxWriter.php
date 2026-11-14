@@ -57,7 +57,7 @@ final class XlsxWriter
     private static function row(int $r, array $values, int $style): string
     {
         $cells = '';
-        foreach (array_values($values) as $i => $v) {
+        foreach ($values as $i => $v) {
             $cells .= self::cell(self::column($i).$r, $v, $style);
         }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { CheckCheck, RefreshCw } from '@lucide/vue';
+import { BellRing, CheckCheck, RefreshCw } from '@lucide/vue';
+import ServiceCallController from '@/actions/App/Http/Controllers/Guest/ServiceCallController';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import KitchenController from '@/actions/App/Http/Controllers/Kitchen/KitchenController';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ type Ticket = {
     order_label: string;
     order_number: string;
     order_type: string;
+    table_id: number | null;
     note: string | null;
     waiter: string;
     created_at: string | null;
@@ -70,6 +72,25 @@ function bump(item: Item): void {
         preserveScroll: true,
         only: ['kots'],
     });
+}
+const pinged = ref<number | null>(null);
+async function ping(t: Ticket): Promise<void> {
+    if (t.table_id === null) return;
+    const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+    await fetch(ServiceCallController.ping().url, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': m ? decodeURIComponent(m[1]) : '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+            dining_table_id: t.table_id,
+            note: `Food ready · KOT ${t.number}`,
+        }),
+    });
+    pinged.value = t.id;
 }
 function bumpAll(t: Ticket): void {
     router.visit(KitchenController.bumpKot(t.id), {
@@ -211,9 +232,20 @@ const LABEL: Record<Item['status'], string> = {
                 <p v-if="t.note" class="border-t px-3 py-2 text-sm">
                     Note: {{ t.note }}
                 </p>
-                <Button class="m-2 h-12 text-base" @click="bumpAll(t)"
-                    ><CheckCheck class="size-5" /> All ready</Button
-                >
+                <div class="m-2 flex gap-2">
+                    <Button class="h-12 flex-1 text-base" @click="bumpAll(t)"
+                        ><CheckCheck class="size-5" /> All ready</Button
+                    >
+                    <Button
+                        v-if="t.table_id"
+                        variant="outline"
+                        class="h-12"
+                        :disabled="pinged === t.id"
+                        @click="ping(t)"
+                        ><BellRing class="size-5" />
+                        {{ pinged === t.id ? 'Pinged' : 'Ping waiter' }}</Button
+                    >
+                </div>
             </article>
         </div>
     </div>

@@ -43,6 +43,7 @@ class KitchenController extends Controller
                 'order_label' => $k->order->label(),
                 'order_number' => $k->order->number,
                 'order_type' => $k->order->type->value,
+                'table_id' => $k->order->dining_table_id,
                 'note' => $k->order->note,
                 'waiter' => $k->creator->name,
                 'created_at' => $k->created_at?->toIso8601String(),

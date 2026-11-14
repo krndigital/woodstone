@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 /**
  * A table or wooden cabin. Status is changed only through actions (never mass assignment).
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonInterface|null $status_changed_at
  * @property int $sort_order
  * @property bool $is_active
+ * @property string|null $qr_token
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  */
@@ -60,6 +62,17 @@ class DiningTable extends Model
     public function label(): string
     {
         return $this->kind === TableKind::Cabin ? 'Cabin '.ltrim($this->code, 'Cc') : 'Table '.$this->code;
+    }
+
+    /**
+     * New random QR token; old printed cards stop working (FR-5.4).
+     */
+    public function regenerateQrToken(): string
+    {
+        $token = Str::random(32);
+        $this->forceFill(['qr_token' => $token])->save();
+
+        return $token;
     }
 
     public function setStatus(TableStatus $status): void

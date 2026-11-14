@@ -34,6 +34,7 @@ final class Settings
             'payment_due' => true,
             'default_credit_limit' => '15000.00',
             'auto_print' => true,
+            'guest_call_any_status' => false,
             'fiscal_year_label' => '2083/84',
             'fiscal_year_starts_on' => '2026-07-17',
         ];

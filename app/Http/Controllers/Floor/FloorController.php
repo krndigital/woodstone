@@ -15,9 +15,11 @@ use App\Models\User;
 use App\Models\Zone;
 use App\Support\Audit;
 use App\Support\FloorData;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -89,11 +91,33 @@ class FloorController extends Controller
     public function storeTable(DiningTableRequest $request): RedirectResponse
     {
         $table = new DiningTable($request->safe()->only(['zone_id', 'code', 'kind', 'seats', 'sort_order']));
-        $table->forceFill(['status' => TableStatus::Free, 'is_active' => true, 'sort_order' => $request->integer('sort_order')])->save();
+        $table->forceFill(['status' => TableStatus::Free, 'is_active' => true, 'sort_order' => $request->integer('sort_order'), 'qr_token' => Str::random(32)])->save();
         Audit::record('floor.table_created', $table, ['code' => $table->code]);
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':table added.', ['table' => $table->label()])]);
 
         return back();
+    }
+
+    public function regenerateQr(Request $request, DiningTable $table): RedirectResponse
+    {
+        abort_unless($request->user() instanceof User && $request->user()->hasPermission(Permission::ManageFloor), 403);
+        $table->regenerateQrToken();
+        Audit::record('floor.qr_regenerated', $table, ['code' => $table->code]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('New QR code for :table. Print the new card.', ['table' => $table->label()])]);
+
+        return back();
+    }
+
+    /**
+     * Printable QR table cards (FR-5.2).
+     */
+    public function qrCards(): Response
+    {
+        return Inertia::render('floor/QrCards', [
+            'tables' => DiningTable::query()->where('is_active', true)->whereNotNull('qr_token')->orderBy('sort_order')->orderBy('code')->get()
+                ->map(fn (DiningTable $t): array => ['id' => $t->id, 'label' => $t->label(), 'url' => route('guest.table', $t->qr_token)])->values()->all(),
+            'restaurant' => Settings::string('restaurant_name'),
+        ]);
     }
 
     public function updateTable(DiningTableRequest $request, DiningTable $table): RedirectResponse

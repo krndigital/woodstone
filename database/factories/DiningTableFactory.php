@@ -9,6 +9,7 @@ use App\Enums\TableStatus;
 use App\Models\DiningTable;
 use App\Models\Zone;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<DiningTable>
@@ -28,6 +29,7 @@ class DiningTableFactory extends Factory
             'status' => TableStatus::Free,
             'sort_order' => 0,
             'is_active' => true,
+            'qr_token' => Str::random(32),
         ];
     }
 

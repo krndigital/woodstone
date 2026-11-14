@@ -79,7 +79,7 @@ class ReportsTest extends TestCase
         $this->assertTrue($zip->open($file));
         $sheet = (string) $zip->getFromName('xl/worksheets/sheet1.xml');
         $this->assertStringContainsString('Food cost', $sheet);
-        $this->assertStringContainsString("'=Momo", $sheet); // formula injection blocked
+        $this->assertStringContainsString('&apos;=Momo', $sheet); // formula injection blocked
         $this->assertStringContainsString('<v>1000</v>', $sheet);
         $zip->close();
 

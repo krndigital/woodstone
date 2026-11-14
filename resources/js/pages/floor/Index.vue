@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, RefreshCw } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import FloorController from '@/actions/App/Http/Controllers/Floor/FloorController';
@@ -14,7 +14,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { index as floorIndex } from '@/routes/floor';
+import { index as floorIndex, qrCards } from '@/routes/floor';
 
 type Zone = {
     id: number;
@@ -191,6 +191,12 @@ function saveTable(): void {
                 >
                     <RefreshCw class="size-4" /> Refresh
                 </Button>
+                <Link
+                    v-if="can.manage"
+                    :href="qrCards().url"
+                    class="flex h-10 items-center rounded-md border px-3 text-sm font-semibold"
+                    >QR cards</Link
+                >
                 <div v-if="can.manage" class="flex rounded-lg bg-muted p-1">
                     <button
                         type="button"

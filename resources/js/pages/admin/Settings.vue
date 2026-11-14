@@ -22,6 +22,7 @@ type AppSettings = {
     payment_due: boolean;
     default_credit_limit: string;
     auto_print: boolean;
+    guest_call_any_status: boolean;
     fiscal_year_label: string;
     fiscal_year_starts_on: string;
 };
@@ -189,6 +190,15 @@ function save(): void {
                             class="size-4"
                         />
                         Print bill after payment</label
+                    >
+                    <label
+                        class="flex items-center gap-2 rounded-lg border px-3 py-2"
+                        ><input
+                            v-model="form.guest_call_any_status"
+                            type="checkbox"
+                            class="size-4"
+                        />
+                        Guests can call from free tables (QR)</label
                     >
                 </div>
             </section>
