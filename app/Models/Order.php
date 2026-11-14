@@ -33,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonInterface|null $closed_at
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
- * @property-read DiningTable|null $table
+ * @property-read DiningTable|null $diningTable
  * @property-read User $waiter
  */
 class Order extends Model
@@ -53,7 +53,7 @@ class Order extends Model
     /**
      * @return BelongsTo<DiningTable, $this>
      */
-    public function table(): BelongsTo
+    public function diningTable(): BelongsTo
     {
         return $this->belongsTo(DiningTable::class, 'dining_table_id');
     }
@@ -89,7 +89,7 @@ class Order extends Model
 
     public function label(): string
     {
-        return $this->table !== null ? $this->table->label() : $this->type->label().' #'.$this->number;
+        return $this->diningTable !== null ? $this->diningTable->label() : $this->type->label().' #'.$this->number;
     }
 
     /**

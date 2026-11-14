@@ -87,6 +87,11 @@ defineOptions({
     layout: { breadcrumbs: [{ title: 'POS', href: posIndex() }] },
 });
 
+/* errors about the whole order come back under the key "order" */
+function orderError(f: { errors: object }): string | undefined {
+    return (f.errors as Record<string, string | undefined>).order;
+}
+
 /* menu browsing */
 const category = ref<number | 'all'>('all');
 const search = ref('');
@@ -305,7 +310,7 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                 </button>
             </div>
             <InputError
-                :message="addForm.errors.menu_item_id || addForm.errors.order"
+                :message="addForm.errors.menu_item_id || orderError(addForm)"
             />
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
                 <button
@@ -700,7 +705,7 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                 </div>
                 <InputError
                     :message="
-                        moveForm.errors.dining_table_id || moveForm.errors.order
+                        moveForm.errors.dining_table_id || orderError(moveForm)
                     "
                 />
                 <Button
@@ -739,7 +744,7 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                 <InputError
                     :message="
                         mergeForm.errors.source_order_id ||
-                        mergeForm.errors.order
+                        orderError(mergeForm)
                     "
                 />
                 <Button
@@ -763,7 +768,7 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                 <Input v-model="cancelForm.reason" placeholder="Reason" />
                 <InputError
                     :message="
-                        cancelForm.errors.reason || cancelForm.errors.order
+                        cancelForm.errors.reason || orderError(cancelForm)
                     "
                 />
                 <Button

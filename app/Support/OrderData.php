@@ -22,7 +22,7 @@ final class OrderData
      */
     public static function order(Order $order): array
     {
-        $order->loadMissing(['table', 'waiter:id,name', 'items', 'kots.station:id,name']);
+        $order->loadMissing(['diningTable', 'waiter:id,name', 'items', 'kots.station:id,name']);
 
         return [
             'id' => $order->id,
@@ -80,7 +80,7 @@ final class OrderData
     public static function openOrders(): array
     {
         return Order::query()
-            ->with(['table', 'waiter:id,name'])
+            ->with(['diningTable', 'waiter:id,name'])
             ->withCount(['items as live_items_count' => fn ($q) => $q->where('status', '!=', 'void')])
             ->where('status', OrderStatus::Open->value)
             ->orderBy('opened_at')

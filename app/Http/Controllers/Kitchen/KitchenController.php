@@ -29,7 +29,7 @@ class KitchenController extends Controller
         $live = array_map(fn (OrderItemStatus $s): string => $s->value, OrderItemStatus::inKitchen());
 
         $kots = Kot::query()
-            ->with(['order.table', 'station:id,name', 'creator:id,name', 'items'])
+            ->with(['order.diningTable', 'station:id,name', 'creator:id,name', 'items'])
             ->when($stationId !== null, fn ($q) => $q->where('station_id', $stationId))
             ->whereHas('order', fn ($q) => $q->where('status', OrderStatus::Open->value))
             ->whereHas('items', fn ($q) => $q->whereIn('status', $live))

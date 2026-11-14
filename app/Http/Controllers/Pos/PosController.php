@@ -214,7 +214,7 @@ class PosController extends Controller
      */
     public function printKot(Request $request, Kot $kot): View
     {
-        $kot->load(['order.table', 'station', 'creator:id,name', 'items']);
+        $kot->load(['order.diningTable', 'station', 'creator:id,name', 'items']);
         $reprint = $kot->printed_at !== null;
 
         if (! $reprint) {

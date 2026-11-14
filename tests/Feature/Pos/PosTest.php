@@ -276,7 +276,7 @@ class PosTest extends TestCase
 
         $empty->refresh();
         $this->assertSame(OrderStatus::Cancelled, $empty->status);
-        $this->assertSame(TableStatus::Free, $empty->table?->status);
+        $this->assertSame(TableStatus::Free, $empty->diningTable?->status);
         $this->assertSame(0, OrderItem::query()->where('order_id', $empty->id)->count());
 
         // Closed orders are read-only.

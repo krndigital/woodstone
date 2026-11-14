@@ -32,7 +32,7 @@ final class CancelOrder
             OrderItem::query()->where('order_id', $order->id)->where('status', OrderItemStatus::Draft->value)->delete();
             $order->forceFill(['status' => OrderStatus::Cancelled, 'cancel_reason' => $reason, 'closed_at' => now()])->save();
             $order->recalculate();
-            $order->table?->setStatus(TableStatus::Free);
+            $order->diningTable?->setStatus(TableStatus::Free);
 
             Audit::record('order.cancelled', $order, ['number' => $order->number, 'reason' => $reason], $user);
         });
