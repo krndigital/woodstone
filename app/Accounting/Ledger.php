@@ -117,7 +117,7 @@ final class Ledger
      */
     private function done(string $type): array
     {
-        return array_map('intval', DB::table('journal_entries')->where('source_type', $type)->pluck('source_id')->all());
+        return array_values(array_map('intval', DB::table('journal_entries')->where('source_type', $type)->pluck('source_id')->all()));
     }
 
     private function bills(): int
