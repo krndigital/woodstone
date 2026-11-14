@@ -30,7 +30,8 @@ class HardeningTest extends TestCase
 
     public function test_backup_refuses_an_in_memory_database(): void
     {
-        $this->artisan('woodstone:backup')->expectsOutputToContain('not found')->assertFailed();
+        config(['database.connections.memtest' => ['driver' => 'sqlite', 'database' => ':memory:']]);
+        $this->artisan('woodstone:backup', ['--connection' => 'memtest'])->expectsOutputToContain('not found')->assertFailed();
     }
 
     public function test_backup_copies_sqlite_and_keeps_the_newest(): void
@@ -38,18 +39,17 @@ class HardeningTest extends TestCase
         $db = storage_path('framework/testing/backup-test.sqlite');
         File::ensureDirectoryExists(dirname($db));
         File::put($db, 'sqlite-data');
-        config(['database.connections.backup_test' => ['driver' => 'sqlite', 'database' => $db], 'database.default' => 'backup_test']);
+        config(['database.connections.backup_test' => ['driver' => 'sqlite', 'database' => $db]]);
         $dir = storage_path('app/backups');
         File::ensureDirectoryExists($dir);
         File::put($dir.'/woodstone-20000101-000000.sqlite', 'old');
 
-        $this->artisan('woodstone:backup', ['--keep' => 1])->assertSuccessful();
+        $this->artisan('woodstone:backup', ['--keep' => 1, '--connection' => 'backup_test'])->assertSuccessful();
 
         $files = collect(File::files($dir))->map(fn ($f) => $f->getFilename())->filter(fn ($n) => str_starts_with($n, 'woodstone-'))->values();
         $this->assertCount(1, $files);
         $this->assertNotSame('woodstone-20000101-000000.sqlite', $files[0]);
         File::deleteDirectory($dir);
         File::delete($db);
-        config(['database.default' => 'sqlite']);
     }
 }

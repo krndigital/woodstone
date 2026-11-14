@@ -16,7 +16,7 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class BackupCommand extends Command
 {
-    protected $signature = 'woodstone:backup {--keep=14 : How many backups to keep}';
+    protected $signature = 'woodstone:backup {--keep=14 : How many backups to keep} {--connection= : Database connection (default: the app connection)}';
 
     protected $description = 'Back up the database to storage/app/backups and remove old backups';
 
@@ -25,7 +25,7 @@ class BackupCommand extends Command
         $dir = storage_path('app/backups');
         File::ensureDirectoryExists($dir, 0700);
         $stamp = now()->format('Ymd-His');
-        $connection = (string) config('database.default');
+        $connection = (string) ($this->option('connection') ?: config('database.default'));
         $cfg = (array) config("database.connections.{$connection}");
         $driver = (string) ($cfg['driver'] ?? '');
 
