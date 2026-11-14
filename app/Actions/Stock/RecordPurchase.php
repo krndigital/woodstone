@@ -88,9 +88,9 @@ final class RecordPurchase
             if ($paid > $total) {
                 throw ValidationException::withMessages(['paid_amount' => __('Paid now cannot be more than the purchase total.')]);
             }
-            if ($paid > 0 && $details['paid_method'] === null) {
-                throw ValidationException::withMessages(['paid_method' => __('How was it paid?')]);
-            }
+            $method = $paid > 0
+                ? ($details['paid_method'] ?? throw ValidationException::withMessages(['paid_method' => __('How was it paid?')]))
+                : null;
 
             $purchase = new Purchase;
             $purchase->forceFill([
@@ -101,13 +101,13 @@ final class RecordPurchase
                 'purchased_on' => $details['purchased_on'],
                 'total' => Money::fromPaisa($total),
                 'paid_amount' => Money::fromPaisa($paid),
-                'paid_method' => $paid > 0 ? $details['paid_method'] : null,
+                'paid_method' => $method,
                 'note' => $details['note'],
                 'created_by' => $by->id,
             ])->save();
 
-            if ($paid > 0 && $details['paid_method'] !== null) {
-                CashBook::post(CashBook::accountForMethod($details['paid_method']), -$paid, 'purchase', $purchase->id, $by, 'Purchase '.$purchase->number.' · '.$supplier->name, null, $details['purchased_on']);
+            if ($method !== null) {
+                CashBook::post(CashBook::accountForMethod($method), -$paid, 'purchase', $purchase->id, $by, 'Purchase '.$purchase->number.' · '.$supplier->name, null, $details['purchased_on']);
             }
 
             foreach ($prepared as $p) {

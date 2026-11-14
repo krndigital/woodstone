@@ -2,6 +2,8 @@
 import { Link } from '@inertiajs/vue3';
 import {
     BookOpenCheck,
+    Clock,
+    IdCard,
     CalendarCheck,
     ChefHat,
     Wallet,
@@ -36,7 +38,9 @@ import { index as billingIndex } from '@/routes/billing';
 import { index as customersIndex } from '@/routes/customers';
 import { index as floorIndex } from '@/routes/floor';
 import { index as kitchenIndex } from '@/routes/kitchen';
+import { index as attendanceIndex } from '@/routes/attendance';
 import { index as menuIndex } from '@/routes/menu';
+import { index as staffIndex } from '@/routes/staff';
 import { cashBook, day } from '@/routes/money';
 import { index as expensesIndex } from '@/routes/money/expenses';
 import { index as posIndex } from '@/routes/pos';
@@ -107,6 +111,22 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (can('stock.manage')) {
         items.push({ title: 'Stock', href: stockIndex(), icon: Package });
+    }
+
+    if (can('staff.attendance')) {
+        items.push({
+            title: 'Attendance',
+            href: attendanceIndex(),
+            icon: Clock,
+        });
+    }
+
+    if (can('staff.manage')) {
+        items.push({
+            title: 'Staff & salary',
+            href: staffIndex(),
+            icon: IdCard,
+        });
     }
 
     if (can('users.manage')) {

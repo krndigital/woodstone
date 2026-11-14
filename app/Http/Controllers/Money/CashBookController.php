@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\AccountTransaction;
 use App\Support\CashBook;
 use App\Support\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,7 +34,7 @@ class CashBookController extends Controller
 
         $summary = [];
         foreach ($accounts as $a) {
-            $opening = CashBook::balance($a, date('Y-m-d', strtotime($from.' -1 day')));
+            $opening = CashBook::balance($a, CarbonImmutable::parse($from)->subDay()->toDateString());
             $closing = CashBook::balance($a, $to);
             $in = Money::fromDbSum(AccountTransaction::query()->where('account_id', $a->id)->whereBetween('business_date', [$from, $to])->where('amount', '>', 0)->sum('amount'));
             $summary[] = [
@@ -46,7 +47,7 @@ class CashBookController extends Controller
 
         $rows = [];
         if ($account !== null) {
-            $running = CashBook::balance($account, date('Y-m-d', strtotime($from.' -1 day')));
+            $running = CashBook::balance($account, CarbonImmutable::parse($from)->subDay()->toDateString());
             foreach (AccountTransaction::query()->with('creator:id,name')->where('account_id', $account->id)->whereBetween('business_date', [$from, $to])->orderBy('business_date')->orderBy('id')->limit(1000)->get() as $t) {
                 $running += Money::toPaisa($t->amount);
                 $rows[] = [

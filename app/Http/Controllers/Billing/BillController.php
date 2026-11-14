@@ -64,7 +64,7 @@ class BillController extends Controller
 
         return Inertia::render('billing/Index', [
             'bills' => $bills,
-            'methods' => array_values(array_map(fn (PaymentMethod $m): array => ['value' => $m->value, 'label' => $m->label()], PaymentMethod::cases())),
+            'methods' => array_map(fn (PaymentMethod $m): array => ['value' => $m->value, 'label' => $m->label()], PaymentMethod::cases()),
             'can' => ['approve' => $user->hasPermission(Permission::ApproveOverride)],
         ]);
     }

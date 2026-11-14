@@ -16,6 +16,9 @@ use App\Http\Controllers\Money\CashBookController;
 use App\Http\Controllers\Money\DayController;
 use App\Http\Controllers\Money\ExpenseController;
 use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Staff\AttendanceController;
+use App\Http\Controllers\Staff\PayrollController;
+use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Stock\PurchaseController;
 use App\Http\Controllers\Stock\PurchaseOrderController;
 use App\Http\Controllers\Stock\RecipeController;
@@ -119,6 +122,26 @@ Route::middleware('auth')->group(function () {
         Route::get('day', [DayController::class, 'index'])->name('day');
         Route::post('day/open', [DayController::class, 'open'])->name('day.open');
         Route::post('day/close', [DayController::class, 'close'])->name('day.close');
+    });
+
+    // Staff, attendance, payroll (step 13).
+    Route::middleware('can:staff.manage')->prefix('staff')->name('staff.')->group(function () {
+        Route::get('/', [StaffController::class, 'index'])->name('index');
+        Route::post('/', [StaffController::class, 'store'])->name('store');
+        Route::put('{staff}', [StaffController::class, 'update'])->whereNumber('staff')->name('update');
+        Route::post('{staff}/advances', [StaffController::class, 'advance'])->whereNumber('staff')->name('advances.store');
+        Route::put('{staff}/attendance', [StaffController::class, 'markAttendance'])->whereNumber('staff')->name('attendance.mark');
+        Route::post('leaves', [StaffController::class, 'storeLeave'])->name('leaves.store');
+        Route::patch('leaves/{leave}', [StaffController::class, 'decideLeave'])->name('leaves.update');
+        Route::get('payroll', [PayrollController::class, 'index'])->name('payroll');
+        Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::patch('payslips/{payslip}', [PayrollController::class, 'update'])->name('payslips.update');
+        Route::post('payslips/{payslip}/pay', [PayrollController::class, 'pay'])->name('payslips.pay');
+        Route::get('payslips/{payslip}/print', [PayrollController::class, 'print'])->name('payslips.print');
+    });
+    Route::middleware('can:staff.attendance')->group(function () {
+        Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('attendance/punch', [AttendanceController::class, 'punch'])->middleware('throttle:10,1')->name('attendance.punch');
     });
 
     // Stock & purchase (step 9).
