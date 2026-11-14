@@ -13,6 +13,11 @@ use App\Http\Controllers\Menu\MenuController;
 use App\Http\Controllers\Menu\MenuItemController;
 use App\Http\Controllers\Menu\StationController;
 use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Stock\PurchaseController;
+use App\Http\Controllers\Stock\PurchaseOrderController;
+use App\Http\Controllers\Stock\RecipeController;
+use App\Http\Controllers\Stock\StockItemController;
+use App\Http\Controllers\Stock\SupplierController;
 use App\Http\Controllers\TerminalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +95,29 @@ Route::middleware('auth')->group(function () {
         Route::post('customers/{customer}/payments', [CustomerController::class, 'receive'])->middleware('throttle:30,1')->name('customers.payments.store');
         Route::post('customers/{customer}/move', [CustomerController::class, 'move'])->middleware('throttle:10,1')->name('customers.move');
         Route::post('customer-groups', [CustomerController::class, 'storeGroup'])->name('customer-groups.store');
+    });
+
+    // Stock & purchase (step 9).
+    Route::middleware('can:stock.manage')->prefix('stock')->name('stock.')->group(function () {
+        Route::get('/', [StockItemController::class, 'index'])->name('items.index');
+        Route::post('items', [StockItemController::class, 'store'])->name('items.store');
+        Route::put('items/{stockItem}', [StockItemController::class, 'update'])->name('items.update');
+        Route::post('items/{stockItem}/adjust', [StockItemController::class, 'adjust'])->name('items.adjust');
+
+        Route::get('purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+        Route::post('purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+
+        Route::get('orders', [PurchaseOrderController::class, 'index'])->name('orders.index');
+        Route::post('orders', [PurchaseOrderController::class, 'store'])->name('orders.store');
+        Route::patch('orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::get('orders/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('orders.print');
+
+        Route::get('suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+
+        Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
+        Route::put('recipes/{menuItem}', [RecipeController::class, 'update'])->name('recipes.update');
     });
 
     // Kitchen & bar display (step 6).

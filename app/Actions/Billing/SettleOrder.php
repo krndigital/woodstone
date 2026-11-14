@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Billing;
 
 use App\Actions\Pos\EnsureOrderOpen;
+use App\Actions\Stock\DeductStockForOrder;
 use App\Enums\LedgerType;
 use App\Enums\OrderItemStatus;
 use App\Enums\OrderStatus;
@@ -32,6 +33,8 @@ use Illuminate\Validation\ValidationException;
  */
 final class SettleOrder
 {
+    public function __construct(private readonly DeductStockForOrder $deductStock) {}
+
     /**
      * @param  array{type: string|null, value: string, reason: string|null}  $discount
      * @param  list<array{payer: string|null, method: string, amount: string, customer_id: int|null, reference: string|null, qr_checked: bool}>  $payments
@@ -164,6 +167,8 @@ final class SettleOrder
                     'created_at' => now(),
                 ])->save();
             }
+
+            $this->deductStock->handle($order, $bill, $cashier);
 
             $order->forceFill(['status' => OrderStatus::Paid, 'closed_at' => now()])->save();
             $order->diningTable?->setStatus(TableStatus::Cleaning);

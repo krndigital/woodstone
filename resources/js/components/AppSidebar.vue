@@ -7,6 +7,7 @@ import {
     LayoutGrid,
     LayoutPanelTop,
     MonitorSmartphone,
+    Package,
     Settings2,
     ShoppingCart,
     UtensilsCrossed,
@@ -34,6 +35,7 @@ import { index as floorIndex } from '@/routes/floor';
 import { index as kitchenIndex } from '@/routes/kitchen';
 import { index as menuIndex } from '@/routes/menu';
 import { index as posIndex } from '@/routes/pos';
+import { index as stockIndex } from '@/routes/stock/items';
 import { index as terminalsIndex } from '@/routes/terminals';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -76,6 +78,10 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (can('menu.view')) {
         items.push({ title: 'Menu', href: menuIndex(), icon: UtensilsCrossed });
+    }
+
+    if (can('stock.manage')) {
+        items.push({ title: 'Stock', href: stockIndex(), icon: Package });
     }
 
     if (can('users.manage')) {

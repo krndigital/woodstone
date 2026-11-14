@@ -32,21 +32,27 @@ Sources: `docs/requirements.md` (FR IDs), `docs/DECISIONS.md` (wins on conflict)
 | Step | Scope                                                                                                                                                             | Main FR / decisions    | Status |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------ |
 | 0    | Baseline: Laravel 13 + Vue starter, CI (SQLite + PostgreSQL + audits), docs                                                                                       | 9A                     | ✅     |
-| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | merged |
-| 2    | **Menu**: categories (one sub-level), items, price/cost/margin, photos, sold-out, time windows, extras, stations                                                  | FR-3                   | 🔨     |
-| 3    | Floor: zones, tables, cabins, statuses, move/merge, reservations                                                                                                  | §3, FR-1               |        |
-| 4    | Settings: restaurant profile, fiscal year (BS), bill numbering, VAT/service 0%, discount limit, payment methods, printers                                         | FR-14, D-02, D-05      |        |
-| 5    | POS orders + KOT: open order, add items, send KOT, void with reason + PIN, takeaway/delivery, hold                                                                | FR-2                   |        |
-| 6    | Kitchen & bar display (realtime, Reverb)                                                                                                                          | FR-5                   |        |
-| 7    | Billing: discount %/Rs, payments (cash, manual QR, card, due), split by amount/items, bill print 80 mm, reprint COPY                                              | FR-4, D-03, D-05, D-07 |        |
-| 8    | Customers, groups & dues ledger: receive, move due, limits                                                                                                        | FR-10, M15, D-07       |        |
-| 9    | Stock & purchase: items, recipes, stock movements, POs, suppliers                                                                                                 | FR-6/7                 |        |
+| 1    | **Auth, users, roles**: username + password, optional PIN on registered terminals, role permissions, user admin, owner setup command, audit log, security headers | §4, D-06               | ✅     |
+| 2    | **Menu**: categories (one sub-level), items, price/cost/margin, photos, sold-out, time windows, extras, stations                                                  | FR-3                   | ✅     |
+| 3    | Floor: zones, tables, cabins, statuses, move/merge, reservations                                                                                                  | §3, FR-1               | ✅     |
+| 4    | Settings: restaurant profile, fiscal year (BS), bill numbering, VAT/service 0%, discount limit, payment methods, printers                                         | FR-14, D-02, D-05      | ✅     |
+| 5    | POS orders + KOT: open order, add items, send KOT, void with reason + PIN, takeaway/delivery, hold                                                                | FR-2                   | ✅     |
+| 6    | Kitchen & bar display (realtime, Reverb)                                                                                                                          | FR-5                   | ✅     |
+| 7    | Billing: discount %/Rs, payments (cash, manual QR, card, due), split by amount/items, bill print 80 mm, reprint COPY                                              | FR-4, D-03, D-05, D-07 | ✅     |
+| 8    | Customers, groups & dues ledger: receive, move due, limits                                                                                                        | FR-10, M15, D-07       | ✅     |
+| 9    | Stock & purchase: items, recipes, stock movements, POs, suppliers                                                                                                 | FR-6/7                 | ✅     |
 | 10   | Cash book, expenses, payables & receivables, day open/close                                                                                                       | FR-8/9, M15            |        |
 | 11   | Reports + Excel/PDF export                                                                                                                                        | §6, D-08               |        |
 | 12   | Owner dashboard (live tables, charts, filters)                                                                                                                    | FR-11                  |        |
 | 13   | Staff, attendance, payroll                                                                                                                                        | FR-12                  |        |
 | 14   | Waiter phone app, guest QR menu, call waiter                                                                                                                      | M16                    |        |
 | 15   | Hardening: backups, monitoring, deploy to server, load test, UAT with client                                                                                      | 9A                     |        |
+
+## Notes on finished steps
+
+- **6 Kitchen display** polls every 8 s. Reverb push can replace polling later without changing the controller.
+- **7 Billing**: bill cancel / sales return with Admin approval (FR-4.4, FR-4.8), day open/close (FR-4.6) and takeaway token / packaging charge (FR-4.7) move to step 10.
+- **9 Stock**: supplier payments and payable ledger (FR-6.3), purchase returns (FR-6.7), batches and expiry (FR-7.8) and store-to-kitchen issue (FR-7.7) move to step 10. Stock may go below zero after sales; the stock page shows it in red so the store keeper can count.
 
 ## Definition of done (per step)
 
