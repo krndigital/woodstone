@@ -20,7 +20,8 @@ class QtyTest extends TestCase
         $this->assertSame('0.0500', Qty::fromCost(500));
         $this->assertSame(2, Qty::div(5, 3));
         $this->assertSame(-2, Qty::div(-5, 3));
-        $this->assertSame(1, Qty::div(3, 2));
+        $this->assertSame(2, Qty::div(3, 2));
+        $this->assertSame(1, Qty::div(4, 3));
         $this->assertSame(0, Qty::div(1, 0));
 
         $this->expectException(InvalidArgumentException::class);

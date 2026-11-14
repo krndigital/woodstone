@@ -49,6 +49,7 @@ class StockTest extends TestCase
     public function test_access_by_role(): void
     {
         foreach (['stock.items.index', 'stock.purchases.index', 'stock.orders.index', 'stock.suppliers.index', 'stock.recipes.index'] as $name) {
+            $this->app['auth']->forgetGuards();
             $this->get(route($name))->assertRedirect(route('login'));
             $this->actingAs(User::factory()->role(Role::Cashier)->create())->get(route($name))->assertForbidden();
             $this->actingAs($this->keeper())->get(route($name))->assertOk();
