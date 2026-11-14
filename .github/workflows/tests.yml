@@ -30,6 +30,7 @@ jobs:
         with:
           php-version: '8.3'
           tools: composer:v2
+          extensions: zip
           coverage: none
 
       - name: Setup Node
@@ -74,7 +75,7 @@ jobs:
         with:
           php-version: '8.3'
           tools: composer:v2
-          extensions: pdo_pgsql
+          extensions: pdo_pgsql, zip
           coverage: none
 
       - name: Setup Node

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
 use App\Http\Controllers\Billing\BillController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dues\CustomerController;
 use App\Http\Controllers\Floor\FloorController;
 use App\Http\Controllers\Kitchen\KitchenController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Money\CashBookController;
 use App\Http\Controllers\Money\DayController;
 use App\Http\Controllers\Money\ExpenseController;
 use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Staff\AttendanceController;
 use App\Http\Controllers\Staff\PayrollController;
 use App\Http\Controllers\Staff\StaffController;
@@ -37,7 +39,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::middleware('can:users.manage')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -142,6 +144,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:staff.attendance')->group(function () {
         Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::post('attendance/punch', [AttendanceController::class, 'punch'])->middleware('throttle:10,1')->name('attendance.punch');
+    });
+
+    // Reports (step 11). Owner-only reports are checked inside the controller.
+    Route::middleware('can:reports.view')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('{report}', [ReportController::class, 'show'])->where('report', '[a-z-]+')->name('show');
+        Route::get('{report}/excel', [ReportController::class, 'excel'])->where('report', '[a-z-]+')->middleware('throttle:30,1')->name('excel');
+        Route::get('{report}/pdf', [ReportController::class, 'pdf'])->where('report', '[a-z-]+')->middleware('throttle:30,1')->name('pdf');
     });
 
     // Stock & purchase (step 9).

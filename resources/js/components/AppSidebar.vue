@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
+    BarChart3,
     BookOpenCheck,
     Clock,
     IdCard,
@@ -44,6 +45,7 @@ import { index as staffIndex } from '@/routes/staff';
 import { cashBook, day } from '@/routes/money';
 import { index as expensesIndex } from '@/routes/money/expenses';
 import { index as posIndex } from '@/routes/pos';
+import { index as reportsIndex } from '@/routes/reports';
 import { index as stockIndex } from '@/routes/stock/items';
 import { index as terminalsIndex } from '@/routes/terminals';
 import { index as usersIndex } from '@/routes/users';
@@ -71,6 +73,10 @@ const mainNavItems = computed<NavItem[]>(() => {
             href: customersIndex(),
             icon: HandCoins,
         });
+    }
+
+    if (can('reports.view')) {
+        items.push({ title: 'Reports', href: reportsIndex(), icon: BarChart3 });
     }
 
     if (can('cash.day')) {
