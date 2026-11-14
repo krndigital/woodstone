@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonInterface|null $updated_at
  * @property-read Order $order
  * @property-read Kot|null $kot
+ * @property-read MenuItem|null $menuItem
  */
 class OrderItem extends Model
 {

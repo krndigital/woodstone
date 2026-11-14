@@ -2,6 +2,8 @@
 import { Link } from '@inertiajs/vue3';
 import {
     ChefHat,
+    HandCoins,
+    ReceiptText,
     LayoutGrid,
     LayoutPanelTop,
     MonitorSmartphone,
@@ -26,6 +28,8 @@ import {
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { edit as settingsEdit } from '@/routes/admin/settings';
+import { index as billingIndex } from '@/routes/billing';
+import { index as customersIndex } from '@/routes/customers';
 import { index as floorIndex } from '@/routes/floor';
 import { index as kitchenIndex } from '@/routes/kitchen';
 import { index as menuIndex } from '@/routes/menu';
@@ -44,6 +48,18 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (can('pos.use')) {
         items.push({ title: 'POS', href: posIndex(), icon: ShoppingCart });
+    }
+
+    if (can('billing.take_payment')) {
+        items.push({ title: 'Bills', href: billingIndex(), icon: ReceiptText });
+    }
+
+    if (can('dues.manage')) {
+        items.push({
+            title: 'Customers & dues',
+            href: customersIndex(),
+            icon: HandCoins,
+        });
     }
 
     if (can('kitchen.view')) {

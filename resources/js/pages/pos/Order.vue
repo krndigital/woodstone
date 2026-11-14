@@ -13,6 +13,7 @@ import {
     X,
 } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -513,6 +514,19 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                     drafts.length ? ` (${drafts.length})` : ''
                 }}
             </Button>
+            <Link
+                v-if="can.pay"
+                :href="BillController.checkout(order.id).url"
+                class="flex h-12 items-center justify-center gap-2 rounded-md border-2 border-foreground text-base font-semibold"
+                :class="
+                    drafts.length > 0 ||
+                    sent.filter((l) => l.status !== 'void').length === 0
+                        ? 'pointer-events-none opacity-40'
+                        : ''
+                "
+            >
+                <Receipt class="size-5" /> Bill & pay
+            </Link>
             <div class="grid grid-cols-3 gap-2">
                 <Button
                     variant="outline"

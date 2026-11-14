@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Bike, Plus, RefreshCw, ShoppingBag, Users } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -75,13 +76,29 @@ const counterOrders = computed(() =>
 );
 
 let timer: ReturnType<typeof setInterval> | undefined;
+let off: (() => void) | undefined;
 onMounted(() => {
+    // After payment the server asks for the bill to be printed.
+    off = router.on('flash', (event) => {
+        const id = (event as CustomEvent).detail?.flash?.printBill as
+            | number
+            | undefined;
+        if (id)
+            window.open(
+                BillController.print(id).url,
+                '_blank',
+                'width=380,height=700',
+            );
+    });
     timer = setInterval(
         () => !document.hidden && router.reload({ only: ['tables', 'orders'] }),
         15000,
     );
 });
-onBeforeUnmount(() => clearInterval(timer));
+onBeforeUnmount(() => {
+    clearInterval(timer);
+    off?.();
+});
 
 /* open a new order */
 const sheetOpen = ref(false);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
+use App\Http\Controllers\Billing\BillController;
+use App\Http\Controllers\Dues\CustomerController;
 use App\Http\Controllers\Floor\FloorController;
 use App\Http\Controllers\Kitchen\KitchenController;
 use App\Http\Controllers\Menu\MenuCategoryController;
@@ -69,6 +71,25 @@ Route::middleware('auth')->group(function () {
         Route::post('order-items/{orderItem}/void', [PosController::class, 'voidItem'])->middleware('throttle:10,1')->name('items.void');
         Route::patch('order-items/{orderItem}/served', [PosController::class, 'markServed'])->name('items.served');
         Route::get('kots/{kot}/print', [PosController::class, 'printKot'])->name('kots.print');
+    });
+
+    // Billing (step 7).
+    Route::middleware('can:billing.take_payment')->prefix('billing')->name('billing.')->group(function () {
+        Route::get('/', [BillController::class, 'index'])->name('index');
+        Route::get('orders/{order}', [BillController::class, 'checkout'])->name('checkout');
+        Route::post('orders/{order}/settle', [BillController::class, 'settle'])->middleware('throttle:20,1')->name('settle');
+        Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
+    });
+
+    // Customers, groups and dues (step 8).
+    Route::middleware('can:dues.manage')->group(function () {
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::post('customers/{customer}/payments', [CustomerController::class, 'receive'])->middleware('throttle:30,1')->name('customers.payments.store');
+        Route::post('customers/{customer}/move', [CustomerController::class, 'move'])->middleware('throttle:10,1')->name('customers.move');
+        Route::post('customer-groups', [CustomerController::class, 'storeGroup'])->name('customer-groups.store');
     });
 
     // Kitchen & bar display (step 6).
