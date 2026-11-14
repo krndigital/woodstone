@@ -77,6 +77,7 @@ class PurchaseController extends Controller
                 'paid_amount' => $request->filled('paid_amount') ? $request->string('paid_amount')->toString() : '0',
                 'paid_method' => $request->filled('paid_method') ? $request->string('paid_method')->toString() : null,
                 'note' => $request->filled('note') ? $request->string('note')->trim()->toString() : null,
+                'due_on' => $request->filled('due_on') ? $request->string('due_on')->toString() : null,
             ],
             $request->actor(),
             $request->filled('purchase_order_id') ? PurchaseOrder::query()->findOrFail($request->integer('purchase_order_id')) : null,

@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $pan
  * @property string|null $address
  * @property bool $is_active
+ * @property string $opening_balance
+ * @property int $credit_days
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  */
@@ -24,7 +26,7 @@ class Supplier extends Model
 {
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'opening_balance' => 'decimal:2', 'credit_days' => 'integer'];
     }
 
     /**

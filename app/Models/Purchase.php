@@ -23,6 +23,7 @@ use LogicException;
  * @property string $paid_amount
  * @property string|null $paid_method
  * @property string|null $note
+ * @property CarbonInterface|null $due_on
  * @property int $created_by
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
@@ -39,7 +40,7 @@ class Purchase extends Model
 
     protected function casts(): array
     {
-        return ['purchased_on' => 'date', 'total' => 'decimal:2', 'paid_amount' => 'decimal:2'];
+        return ['due_on' => 'date', 'purchased_on' => 'date', 'total' => 'decimal:2', 'paid_amount' => 'decimal:2'];
     }
 
     /**

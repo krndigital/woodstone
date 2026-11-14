@@ -27,6 +27,10 @@ type Supplier = {
     is_active: boolean;
     purchases: number;
     owed: string;
+    credit_days: number;
+    opening_balance: string;
+    overdue: string;
+    next_7: string;
 };
 
 const props = defineProps<{
@@ -49,6 +53,8 @@ const form = useForm({
     pan: '',
     address: '',
     is_active: true,
+    credit_days: 30,
+    opening_balance: '',
 });
 function edit(s: Supplier | null): void {
     current.value = s;
@@ -58,6 +64,8 @@ function edit(s: Supplier | null): void {
     form.pan = s?.pan ?? '';
     form.address = s?.address ?? '';
     form.is_active = s?.is_active ?? true;
+    form.credit_days = s?.credit_days ?? 30;
+    form.opening_balance = '';
     open.value = true;
 }
 const action = ref<'pay' | 'return' | null>(null);
@@ -168,8 +176,36 @@ function save(): void {
                             "
                         >
                             {{ rs(s.owed) }}
+                            <div
+                                v-if="toPaisa(s.overdue)"
+                                class="text-xs font-semibold text-red-600"
+                            >
+                                Late {{ rs(s.overdue) }}
+                            </div>
+                            <div
+                                v-if="toPaisa(s.next_7)"
+                                class="text-xs text-amber-700"
+                            >
+                                Due in 7 days {{ rs(s.next_7) }}
+                            </div>
                         </td>
                         <td class="p-3 text-right">
+                            <button
+                                v-if="can.pay"
+                                type="button"
+                                class="mr-1.5 inline-flex h-9 items-center gap-1 rounded-md border px-2 text-xs font-semibold disabled:opacity-40"
+                                :disabled="toPaisa(s.owed) <= 0"
+                                @click="startPay(s)"
+                            >
+                                <HandCoins class="size-3.5" /> Pay
+                            </button>
+                            <button
+                                type="button"
+                                class="mr-1.5 inline-flex h-9 items-center gap-1 rounded-md border px-2 text-xs font-semibold"
+                                @click="startReturn(s)"
+                            >
+                                <Undo2 class="size-3.5" /> Return
+                            </button>
                             <button
                                 type="button"
                                 class="inline-flex size-9 items-center justify-center rounded-md border"
@@ -225,6 +261,27 @@ function save(): void {
                         v-model="form.pan"
                         inputmode="numeric"
                     /><InputError :message="form.errors.pan" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="grid gap-2">
+                        <Label for="scd">Credit days</Label
+                        ><Input
+                            id="scd"
+                            v-model.number="form.credit_days"
+                            type="number"
+                            min="0"
+                            max="365"
+                        /><InputError :message="form.errors.credit_days" />
+                    </div>
+                    <div v-if="!current" class="grid gap-2">
+                        <Label for="sob">Opening balance we owe (Rs)</Label
+                        ><Input
+                            id="sob"
+                            v-model="form.opening_balance"
+                            inputmode="decimal"
+                            placeholder="0"
+                        /><InputError :message="form.errors.opening_balance" />
+                    </div>
                 </div>
                 <div class="grid gap-2">
                     <Label for="sa">Address</Label

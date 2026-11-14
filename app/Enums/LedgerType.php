@@ -11,6 +11,7 @@ enum LedgerType: string
     case TransferIn = 'transfer_in';
     case TransferOut = 'transfer_out';
     case SalesReturn = 'sales_return';
+    case Opening = 'opening';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum LedgerType: string
             self::TransferIn => 'Due moved in',
             self::TransferOut => 'Due moved out',
             self::SalesReturn => 'Bill returned',
+            self::Opening => 'Opening balance',
         };
     }
 }

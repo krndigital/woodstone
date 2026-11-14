@@ -23,6 +23,8 @@ class SupplierRequest extends StockRequest
             'pan' => ['nullable', 'regex:/^\d{9}$/'],
             'address' => ['nullable', 'string', 'max:150'],
             'is_active' => ['boolean'],
+            'credit_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'opening_balance' => ['nullable', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
         ];
     }
 }

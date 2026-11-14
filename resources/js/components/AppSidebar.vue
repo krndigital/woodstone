@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     BarChart3,
+    Scale,
     BookOpenCheck,
     Clock,
     IdCard,
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/sidebar';
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
+import { index as accountingIndex } from '@/routes/accounting';
 import { edit as settingsEdit } from '@/routes/admin/settings';
 import { index as billingIndex } from '@/routes/billing';
 import { index as customersIndex } from '@/routes/customers';
@@ -89,6 +91,14 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (can('expenses.create')) {
         items.push({ title: 'Expenses', href: expensesIndex(), icon: Wallet });
+    }
+
+    if (can('settings.manage')) {
+        items.push({
+            title: 'Accounting',
+            href: accountingIndex(),
+            icon: Scale,
+        });
     }
 
     if (can('cash.manage')) {

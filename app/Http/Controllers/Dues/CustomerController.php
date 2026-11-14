@@ -159,7 +159,13 @@ class CustomerController extends Controller
         $customer = new Customer($this->details($request));
         $customer->forceFill(['credit_limit' => Money::fromPaisa(Money::toPaisa($limit)), 'is_active' => true])->save();
 
-        Audit::record('customer.created', $customer, ['name' => $customer->name, 'credit_limit' => $customer->credit_limit], $user);
+        // Old due carried over from the Google Sheet on go-live (FR-15.10).
+        $opening = $request->filled('opening_balance') ? Money::toPaisa($request->string('opening_balance')->toString()) : 0;
+        if ($opening > 0) {
+            $entry = new LedgerEntry;
+            $entry->forceFill(['customer_id' => $customer->id, 'type' => LedgerType::Opening, 'amount' => Money::fromPaisa($opening), 'note' => 'Opening due', 'created_by' => $user->id, 'created_at' => now()])->save();
+        }
+        Audit::record('customer.created', $customer, ['name' => $customer->name, 'credit_limit' => $customer->credit_limit, 'opening_due' => Money::fromPaisa($opening)], $user);
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':name added.', ['name' => $customer->name])]);
 
         return back();

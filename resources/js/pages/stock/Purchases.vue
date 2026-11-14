@@ -94,6 +94,7 @@ const form = useForm({
     supplier_bill_no: '',
     paid_amount: '',
     paid_method: 'cash' as 'cash' | 'qr' | 'card' | 'bank' | null,
+    due_on: '',
     note: '',
     lines: [blank()] as Line[],
 });
@@ -442,6 +443,16 @@ function save(): void {
                         </select>
                         <InputError :message="form.errors.paid_method" />
                     </div>
+                </div>
+                <div class="grid gap-2">
+                    <Label
+                        >Pay the rest by (optional; default = supplier credit
+                        days)</Label
+                    ><Input
+                        v-model="form.due_on"
+                        type="date"
+                        :min="form.purchased_on"
+                    /><InputError :message="form.errors.due_on" />
                 </div>
                 <Input v-model="form.note" placeholder="Note (optional)" />
                 <Button type="submit" class="h-12" :disabled="form.processing"

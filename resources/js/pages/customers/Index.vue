@@ -95,6 +95,7 @@ const editForm = useForm({
     birthday: '',
     anniversary: '',
     preferred_seat: '',
+    opening_balance: '',
 });
 function openEdit(c: Customer | null): void {
     current.value = c;
@@ -109,6 +110,7 @@ function openEdit(c: Customer | null): void {
     editForm.birthday = c?.birthday ?? '';
     editForm.anniversary = c?.anniversary ?? '';
     editForm.preferred_seat = c?.preferred_seat ?? '';
+    editForm.opening_balance = '';
     panel.value = 'edit';
 }
 function saveCustomer(): void {
@@ -458,6 +460,18 @@ function addGroup(): void {
                                 {{ g.name }}
                             </option>
                         </select>
+                    </div>
+                    <div v-if="!current" class="grid gap-2">
+                        <Label for="ob"
+                            >Old due from before (Rs, optional)</Label
+                        ><Input
+                            id="ob"
+                            v-model="editForm.opening_balance"
+                            inputmode="decimal"
+                            placeholder="0"
+                        /><InputError
+                            :message="editForm.errors.opening_balance"
+                        />
                     </div>
                     <div class="grid gap-2">
                         <Label for="l">Due limit (Rs)</Label>

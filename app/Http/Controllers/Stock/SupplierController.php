@@ -17,6 +17,7 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\Money;
+use App\Support\Payables;
 use App\Support\SupplierBalance;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class SupplierController extends Controller
         /** @var User $user */
         $user = $request->user();
         $owed = SupplierBalance::all();
+        $ageing = Payables::ageing();
 
         $suppliers = Supplier::query()->withCount('purchases')->orderBy('name')->get()->map(fn (Supplier $s): array => [
             'id' => $s->id,
@@ -44,6 +46,10 @@ class SupplierController extends Controller
             'is_active' => $s->is_active,
             'purchases' => (int) $s->getAttribute('purchases_count'),
             'owed' => Money::fromPaisa($owed[$s->id] ?? 0),
+            'credit_days' => $s->credit_days,
+            'opening_balance' => $s->opening_balance,
+            'overdue' => Money::fromPaisa(($ageing[$s->id]['d1_30'] ?? 0) + ($ageing[$s->id]['d31_60'] ?? 0) + ($ageing[$s->id]['d61_90'] ?? 0) + ($ageing[$s->id]['d90_plus'] ?? 0)),
+            'next_7' => Money::fromPaisa($ageing[$s->id]['next_7'] ?? 0),
         ])->values()->all();
 
         return Inertia::render('stock/Suppliers', [
@@ -89,8 +95,13 @@ class SupplierController extends Controller
     public function store(SupplierRequest $request): RedirectResponse
     {
         $supplier = new Supplier($this->details($request));
-        $supplier->forceFill(['is_active' => true])->save();
-        Audit::record('stock.supplier_created', $supplier, ['name' => $supplier->name]);
+        // Opening balance is set once, on go-live (FR-15.10); later changes go through payments/returns.
+        $supplier->forceFill([
+            'is_active' => true,
+            'credit_days' => $request->integer('credit_days', 30),
+            'opening_balance' => Money::fromPaisa(Money::toPaisa($request->filled('opening_balance') ? $request->string('opening_balance')->toString() : '0')),
+        ])->save();
+        Audit::record('stock.supplier_created', $supplier, ['name' => $supplier->name, 'opening_balance' => $supplier->opening_balance]);
 
         return back();
     }
@@ -98,7 +109,7 @@ class SupplierController extends Controller
     public function update(SupplierRequest $request, Supplier $supplier): RedirectResponse
     {
         $supplier->fill($this->details($request));
-        $supplier->forceFill(['is_active' => $request->boolean('is_active', true)])->save();
+        $supplier->forceFill(['is_active' => $request->boolean('is_active', true), 'credit_days' => $request->integer('credit_days', $supplier->credit_days)])->save();
         Audit::record('stock.supplier_updated', $supplier, ['name' => $supplier->name, 'is_active' => $supplier->is_active]);
 
         return back();

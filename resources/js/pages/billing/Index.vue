@@ -164,6 +164,12 @@ function when(iso: string | null): string {
                         </td>
                         <td class="p-3 text-right font-bold tabular-nums">
                             {{ rs(b.total) }}
+                            <div
+                                v-if="toPaisa(b.returned)"
+                                class="text-xs font-semibold text-red-600"
+                            >
+                                Returned {{ rs(b.returned) }}
+                            </div>
                         </td>
                         <td class="p-3 text-right">
                             <button
@@ -173,6 +179,14 @@ function when(iso: string | null): string {
                             >
                                 <Printer class="size-3.5" />
                                 {{ b.print_count ? 'Reprint' : 'Print' }}
+                            </button>
+                            <button
+                                v-if="left(b) > 0"
+                                type="button"
+                                class="ml-1.5 inline-flex h-9 items-center gap-1 rounded-md border px-3 text-xs font-semibold text-red-600"
+                                @click="startReturn(b)"
+                            >
+                                <Undo2 class="size-3.5" /> Return
                             </button>
                         </td>
                     </tr>

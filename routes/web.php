@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Accounting\AccountingController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
 use App\Http\Controllers\Billing\BillController;
@@ -117,6 +118,12 @@ Route::middleware('auth')->group(function () {
         Route::post('customer-groups', [CustomerController::class, 'storeGroup'])->name('customer-groups.store');
         Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
         Route::get('customer-receipts/{entry}/print', [CustomerController::class, 'receipt'])->name('customers.receipts.print');
+    });
+
+    // Double-entry ledger, manual journals (FR-13), Super Admin only.
+    Route::middleware('can:settings.manage')->group(function () {
+        Route::get('accounting', [AccountingController::class, 'index'])->name('accounting.index');
+        Route::post('accounting/journals', [AccountingController::class, 'store'])->name('accounting.journals.store');
     });
 
     // Money: cash book, expenses, day open/close (step 10).

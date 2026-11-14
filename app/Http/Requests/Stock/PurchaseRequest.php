@@ -22,6 +22,7 @@ class PurchaseRequest extends StockRequest
             'paid_amount' => ['nullable', 'regex:'.self::MONEY],
             'paid_method' => ['nullable', Rule::in(['cash', 'qr', 'card', 'bank'])],
             'note' => ['nullable', 'string', 'max:200'],
+            'due_on' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:purchased_on'],
             'lines' => ['required', 'array', 'min:1', 'max:50'],
             'lines.*.stock_item_id' => ['required', 'integer', 'exists:stock_items,id'],
             'lines.*.quantity' => ['required', 'regex:/^\d{1,10}(\.\d{1,3})?$/'],

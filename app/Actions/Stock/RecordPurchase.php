@@ -18,6 +18,7 @@ use App\Support\CashBook;
 use App\Support\Money;
 use App\Support\NumberSequence;
 use App\Support\Qty;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -31,7 +32,7 @@ final class RecordPurchase
 
     /**
      * @param  list<array{stock_item_id: int, quantity: string, in_purchase_unit: bool, rate: string, po_line_id: int|null}>  $lines
-     * @param  array{purchased_on: string, supplier_bill_no: string|null, paid_amount: string, paid_method: string|null, note: string|null}  $details
+     * @param  array{purchased_on: string, supplier_bill_no: string|null, paid_amount: string, paid_method: string|null, note: string|null, due_on?: string|null}  $details
      * @return array{purchase: Purchase, differences: list<string>}
      */
     public function handle(Supplier $supplier, array $lines, array $details, User $by, ?PurchaseOrder $po = null): array
@@ -102,6 +103,7 @@ final class RecordPurchase
                 'total' => Money::fromPaisa($total),
                 'paid_amount' => Money::fromPaisa($paid),
                 'paid_method' => $method,
+                'due_on' => $paid < $total ? ($details['due_on'] ?? CarbonImmutable::parse($details['purchased_on'])->addDays($supplier->credit_days)->toDateString()) : null,
                 'note' => $details['note'],
                 'created_by' => $by->id,
             ])->save();

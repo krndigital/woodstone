@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Reports;
 
+use App\Accounting\Ledger;
 use App\Actions\Staff\Payroll;
 use App\Enums\PaymentMethod;
 use App\Models\Account;
@@ -16,6 +17,7 @@ use App\Support\BsDate;
 use App\Support\CashBook;
 use App\Support\DuesData;
 use App\Support\Money;
+use App\Support\Payables;
 use App\Support\Qty;
 use App\Support\SupplierBalance;
 use Carbon\CarbonImmutable;
@@ -48,6 +50,10 @@ final class ReportBuilder
             'staff' => self::staff($p),
             'profit-loss' => self::profitLoss($p),
             'audit' => self::audit($p),
+            'payables-ageing' => self::payablesAgeing(),
+            'trial-balance' => self::trialBalance($p),
+            'balance-sheet' => self::balanceSheet($p),
+            'cash-flow' => self::cashFlow($p),
             default => ['columns' => [], 'rows' => [], 'totals' => null, 'notes' => []],
         };
     }
@@ -436,6 +442,117 @@ final class ReportBuilder
         }
 
         return ['columns' => self::cols([['time', 'Time'], ['user', 'User'], ['action', 'Action'], ['details', 'Details']]), 'rows' => $rows, 'totals' => null, 'notes' => []];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function payablesAgeing(): array
+    {
+        $ageing = Payables::ageing();
+        $rows = [];
+        foreach (Supplier::query()->orderBy('name')->get() as $s) {
+            $a = $ageing[$s->id] ?? null;
+            if ($a === null || $a['owed'] === 0) {
+                continue;
+            }
+            $rows[] = ['supplier' => $s->name, 'not_due' => $a['not_due'], 'd1_30' => $a['d1_30'], 'd31_60' => $a['d31_60'], 'd61_90' => $a['d61_90'], 'd90_plus' => $a['d90_plus'], 'owed' => $a['owed'], 'next_7' => $a['next_7']];
+        }
+
+        return ['columns' => self::cols([['supplier', 'Supplier'], ['not_due', 'Not due', 'money'], ['d1_30', '1–30 late', 'money'], ['d31_60', '31–60 late', 'money'], ['d61_90', '61–90 late', 'money'], ['d90_plus', '90+ late', 'money'], ['owed', 'Total owed', 'money'], ['next_7', 'Due in 7 days', 'money']]), 'rows' => $rows, 'totals' => self::sum($rows, ['not_due', 'd1_30', 'd31_60', 'd61_90', 'd90_plus', 'owed', 'next_7'], 'supplier'), 'notes' => ['As of today. Payments and returns settle the oldest bills first.']];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function trialBalance(Period $p): array
+    {
+        $ledger = new Ledger;
+        $ledger->sync();
+        $rows = [];
+        foreach ($ledger->balances($p->toDate(), $p->fromDate()) as $a) {
+            $rows[] = ['code' => $a['code'], 'account' => $a['name'], 'type' => ucfirst($a['type']), 'debit' => max(0, $a['balance']), 'credit' => max(0, -$a['balance'])];
+        }
+
+        return ['columns' => self::cols([['code', 'Code'], ['account', 'Account'], ['type', 'Type'], ['debit', 'Debit', 'money'], ['credit', 'Credit', 'money']]), 'rows' => $rows, 'totals' => self::sum($rows, ['debit', 'credit'], 'code'), 'notes' => ['Movements in the period. Debit and credit totals are always equal.']];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function balanceSheet(Period $p): array
+    {
+        $ledger = new Ledger;
+        $ledger->sync();
+        $groups = ['asset' => [], 'liability' => [], 'equity' => []];
+        $earnings = 0;
+        foreach ($ledger->balances($p->toDate()) as $a) {
+            if ($a['type'] === 'income' || $a['type'] === 'expense') {
+                $earnings -= $a['balance'];
+
+                continue;
+            }
+            if ($a['balance'] !== 0) {
+                $groups[$a['type']][] = ['line' => $a['code'].' '.$a['name'], 'amount' => $a['type'] === 'asset' ? $a['balance'] : -$a['balance']];
+            }
+        }
+        $rows = [['line' => 'ASSETS', 'amount' => null]];
+        array_push($rows, ...$groups['asset']);
+        $assets = array_sum(array_column($groups['asset'], 'amount'));
+        $rows[] = ['line' => 'Total assets', 'amount' => $assets];
+        $rows[] = ['line' => 'LIABILITIES', 'amount' => null];
+        array_push($rows, ...$groups['liability']);
+        $liabilities = array_sum(array_column($groups['liability'], 'amount'));
+        $rows[] = ['line' => 'Total liabilities', 'amount' => $liabilities];
+        $rows[] = ['line' => 'OWNER EQUITY', 'amount' => null];
+        array_push($rows, ...$groups['equity']);
+        $rows[] = ['line' => 'Profit to date', 'amount' => $earnings];
+        $equity = array_sum(array_column($groups['equity'], 'amount')) + $earnings;
+        $rows[] = ['line' => 'Total equity', 'amount' => $equity];
+        $rows[] = ['line' => 'Liabilities + equity', 'amount' => $liabilities + $equity];
+
+        return ['columns' => self::cols([['line', 'Line'], ['amount', 'Amount', 'money']]), 'rows' => $rows, 'totals' => null, 'notes' => ['As of the end date. Stock is valued at average cost; fixed assets are capex expenses.']];
+    }
+
+    /**
+     * @return array{columns: list<array{key: string, label: string, type: string}>, rows: list<array<string, mixed>>, totals: array<string, mixed>|null, notes: list<string>}
+     */
+    private static function cashFlow(Period $p): array
+    {
+        $kinds = DB::table('expenses')->pluck('kind', 'id');
+        $flows = ['operating' => [], 'investing' => [], 'financing' => []];
+        $opening = 0;
+        foreach (Account::query()->get() as $a) {
+            $opening += CashBook::balance($a, $p->from->subDay()->toDateString());
+        }
+        $labels = ['bill_payment' => 'Sales received', 'due_receipt' => 'Dues received', 'purchase' => 'Purchases paid', 'supplier_payment' => 'Suppliers paid', 'expense' => 'Expenses', 'expense_void' => 'Expenses voided', 'sales_return' => 'Refunds', 'advance' => 'Staff advances', 'day_close' => 'Cash over / short', 'manual' => 'Other'];
+        foreach (DB::table('account_transactions')->whereBetween('business_date', [$p->fromDate(), $p->toDate()])->where('source_type', '!=', 'transfer')->get(['source_type', 'source_id', 'category', 'amount']) as $t) {
+            $type = (string) $t->source_type;
+            $section = 'operating';
+            $label = $labels[$type] ?? $type;
+            if (($type === 'expense' || $type === 'expense_void') && ($kinds[(int) $t->source_id] ?? '') === 'investment') {
+                $section = 'investing';
+                $label = 'Capex / investment';
+            } elseif ($type === 'manual' && in_array($t->category, ['owner_capital', 'owner_withdrawal', 'loan'], true)) {
+                $section = 'financing';
+                $label = ['owner_capital' => 'Owner money in', 'owner_withdrawal' => 'Owner withdrawals', 'loan' => 'Loans'][(string) $t->category];
+            }
+            $flows[$section][$label] = ($flows[$section][$label] ?? 0) + Money::toPaisa((string) $t->amount);
+        }
+        $rows = [['line' => 'Opening cash, bank and wallets', 'amount' => $opening]];
+        $net = 0;
+        foreach (['operating' => 'OPERATING', 'investing' => 'INVESTING', 'financing' => 'FINANCING'] as $key => $title) {
+            $rows[] = ['line' => $title, 'amount' => null];
+            foreach ($flows[$key] as $label => $amount) {
+                $rows[] = ['line' => '  '.$label, 'amount' => $amount];
+            }
+            $sum = array_sum($flows[$key]);
+            $net += $sum;
+            $rows[] = ['line' => 'Net '.strtolower($title).' cash', 'amount' => $sum];
+        }
+        $rows[] = ['line' => 'Closing cash, bank and wallets', 'amount' => $opening + $net];
+
+        return ['columns' => self::cols([['line', 'Line'], ['amount', 'Amount', 'money']]), 'rows' => $rows, 'totals' => null, 'notes' => ['Transfers between your own accounts are left out.']];
     }
 
     /**

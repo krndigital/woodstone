@@ -17,6 +17,9 @@ final class SupplierBalance
     public static function all(?string $asOf = null): array
     {
         $owed = [];
+        foreach (DB::table('suppliers')->where('opening_balance', '!=', 0)->get(['id', 'opening_balance']) as $s) {
+            $owed[(int) $s->id] = Money::toPaisa((string) $s->opening_balance);
+        }
         foreach (DB::table('purchases')->when($asOf, fn ($q) => $q->where('purchased_on', '<=', $asOf))->get(['supplier_id', 'total', 'paid_amount']) as $p) {
             $owed[(int) $p->supplier_id] = ($owed[(int) $p->supplier_id] ?? 0) + Money::toPaisa((string) $p->total) - Money::toPaisa((string) $p->paid_amount);
         }

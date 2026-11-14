@@ -35,6 +35,7 @@ class CustomerRequest extends DuesRequest
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'anniversary' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'preferred_seat' => ['nullable', 'string', 'max:40'],
+            'opening_balance' => ['nullable', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
         ];
     }
 }
