@@ -13,6 +13,7 @@ enum StockMovementType: string
     case StaffMeal = 'staff_meal';
     case Adjustment = 'adjustment';
     case Count = 'count';
+    case Return = 'return';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum StockMovementType: string
             self::StaffMeal => 'Staff meal',
             self::Adjustment => 'Adjustment',
             self::Count => 'Stock count',
+            self::Return => 'Return',
         };
     }
 

@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\LedgerEntry;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\CashBook;
 use App\Support\ManagerApproval;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ final class PostLedger
             }
 
             $entry = $this->post($customer, LedgerType::Payment, -$paisa, $by, ['method' => $method, 'reference' => $reference, 'note' => $note]);
+            CashBook::post(CashBook::accountForMethod($method->value), $paisa, 'due_receipt', $entry->id, $by, 'Due from '.$customer->name);
             Audit::record('dues.payment_received', $customer, ['amount' => Money::fromPaisa($paisa), 'method' => $method->value, 'reference' => $reference], $by);
 
             return $entry;

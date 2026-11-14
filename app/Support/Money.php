@@ -40,6 +40,25 @@ final class Money
     }
 
     /**
+     * Converts a SQL SUM() result (exact numeric string on PostgreSQL, float on SQLite) to paisa.
+     */
+    public static function fromDbSum(mixed $sum): int
+    {
+        if ($sum === null || $sum === '') {
+            return 0;
+        }
+        if (is_string($sum) && preg_match('/^-?\d+(\.\d+)?$/', $sum) === 1) {
+            [$whole, $frac] = array_pad(explode('.', ltrim($sum, '-')), 2, '');
+            $paisa = ((int) $whole) * 100 + (int) str_pad(substr($frac, 0, 2), 2, '0');
+            $paisa += (int) ((int) substr($frac, 2, 1) >= 5);
+
+            return str_starts_with($sum, '-') ? -$paisa : $paisa;
+        }
+
+        return (int) round(((float) $sum) * 100);
+    }
+
+    /**
      * Gross margin as a whole percent of price, or null when unknown.
      */
     public static function marginPercent(?string $price, ?string $cost): ?int

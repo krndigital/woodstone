@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Billing;
 
+use App\Actions\Billing\ReturnSale;
 use App\Actions\Billing\SettleOrder;
 use App\Enums\OrderItemStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Billing\ReturnSaleRequest;
 use App\Http\Requests\Billing\SettleRequest;
 use App\Models\Bill;
 use App\Models\BillPayment;
@@ -17,6 +19,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\DuesData;
+use App\Support\ManagerApproval;
 use App\Support\Money;
 use App\Support\OrderData;
 use App\Support\Settings;
@@ -35,6 +38,7 @@ class BillController extends Controller
     {
         $bills = Bill::query()
             ->with(['order.diningTable', 'cashier:id,name', 'payments'])
+            ->withSum('returns as returned_sum', 'amount')
             ->latest('id')
             ->limit(100)
             ->get()
@@ -49,11 +53,48 @@ class BillController extends Controller
                 'methods' => $b->payments->map(fn (BillPayment $p): string => $p->method->label())->unique()->values()->all(),
                 'cashier' => $b->cashier->name,
                 'print_count' => $b->print_count,
+                'returned' => Money::fromPaisa(Money::fromDbSum($b->getAttribute('returned_sum'))),
+                'has_due' => $b->payments->contains(fn (BillPayment $p): bool => $p->method === PaymentMethod::Due),
                 'created_at' => $b->created_at?->toIso8601String(),
             ])
             ->values()->all();
 
-        return Inertia::render('billing/Index', ['bills' => $bills]);
+        /** @var User $user */
+        $user = $request->user();
+
+        return Inertia::render('billing/Index', [
+            'bills' => $bills,
+            'methods' => array_values(array_map(fn (PaymentMethod $m): array => ['value' => $m->value, 'label' => $m->label()], PaymentMethod::cases())),
+            'can' => ['approve' => $user->hasPermission(Permission::ApproveOverride)],
+        ]);
+    }
+
+    /**
+     * Sales return or full bill cancel with reason and Admin approval (FR-4.4, FR-4.8).
+     */
+    public function returnSale(ReturnSaleRequest $request, Bill $bill, ReturnSale $action): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $approver = ManagerApproval::resolve(
+            $user,
+            $request->filled('approver_username') ? $request->string('approver_username')->toString() : null,
+            $request->filled('approver_secret') ? $request->string('approver_secret')->toString() : null,
+        );
+
+        $return = $action->handle(
+            $bill,
+            $request->filled('amount') ? $request->string('amount')->toString() : null,
+            $request->boolean('full_cancel'),
+            PaymentMethod::from($request->string('refund_method')->toString()),
+            $request->boolean('restock'),
+            $request->string('reason')->trim()->toString(),
+            $user,
+            $approver,
+        );
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Return of Rs :amount on bill :number saved.', ['amount' => $return->amount, 'number' => $bill->number])]);
+
+        return back();
     }
 
     public function checkout(Request $request, Order $order): Response|RedirectResponse

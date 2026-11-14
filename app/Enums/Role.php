@@ -41,8 +41,8 @@ enum Role: string
             self::Admin => self::allExcept(Permission::ManageSettings),
             self::Cashier => [
                 Permission::ViewFloor, Permission::UsePos, Permission::TakePayment, Permission::GiveDiscount,
-                Permission::ManageDues, Permission::CreateExpense,
-                Permission::ViewMenu, Permission::SetItemAvailability,
+                Permission::ManageDues, Permission::CreateExpense, Permission::CloseDay,
+                Permission::ViewMenu, Permission::SetItemAvailability, Permission::RecordAttendance,
             ],
             self::Waiter => [Permission::ViewFloor, Permission::UsePos, Permission::ViewMenu],
             self::Kitchen, self::Bartender => [Permission::ViewKitchen, Permission::ViewMenu, Permission::SetItemAvailability],

@@ -40,6 +40,7 @@ final class OpenOrder
             $order = new Order;
             $order->forceFill([
                 'number' => (string) NumberSequence::next('order'),
+                'token' => $type === OrderType::DineIn ? null : NumberSequence::next('token:'.now()->toDateString()),
                 'type' => $type,
                 'dining_table_id' => $table?->id,
                 'guests' => max(1, $details['guests'] ?? 1),

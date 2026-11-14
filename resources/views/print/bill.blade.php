@@ -14,6 +14,7 @@
     @if ($copy)<div class="c" style="margin-top:4px"><span class="tag">COPY</span></div>@endif
     <hr>
     <div class="c b">{{ (float) $bill->vat_percent > 0 ? 'TAX INVOICE' : 'INVOICE' }}</div>
+    @if ($bill->order->token)<div class="c" style="font-size:28px;font-weight:bold;margin:4px 0">TOKEN {{ $bill->order->token }}</div>@endif
     <table>
         <tr><td>Bill no</td><td class="r b">{{ $bill->number }}</td></tr>
         <tr><td>Date</td><td class="r">{{ $at?->format('d M Y, h:i A') }}</td></tr>

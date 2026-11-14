@@ -4,28 +4,36 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Stock;
 
+use App\Actions\Money\CashMovements;
+use App\Actions\Stock\ReturnToSupplier;
+use App\Enums\Permission;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Money\PurchaseReturnRequest;
+use App\Http\Requests\Money\SupplierPaymentRequest;
 use App\Http\Requests\Stock\SupplierRequest;
-use App\Models\Purchase;
+use App\Models\Account;
+use App\Models\StockItem;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Support\Audit;
 use App\Support\Money;
+use App\Support\SupplierBalance;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Suppliers (FR-6.1). Amount owed = purchases not paid at the time. Supplier payments and the
- * payable ledger come with step 10.
+ * Suppliers (FR-6.1), what we owe them (FR-15.1), payments (FR-15.2) and returns (FR-6.7).
+ * Behind `can:stock.manage`; paying also needs `cash.manage`.
  */
 class SupplierController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $owed = [];
-        foreach (Purchase::query()->get(['supplier_id', 'total', 'paid_amount']) as $p) {
-            $owed[$p->supplier_id] = ($owed[$p->supplier_id] ?? 0) + Money::toPaisa($p->total) - Money::toPaisa($p->paid_amount);
-        }
+        /** @var User $user */
+        $user = $request->user();
+        $owed = SupplierBalance::all();
 
         $suppliers = Supplier::query()->withCount('purchases')->orderBy('name')->get()->map(fn (Supplier $s): array => [
             'id' => $s->id,
@@ -38,7 +46,44 @@ class SupplierController extends Controller
             'owed' => Money::fromPaisa($owed[$s->id] ?? 0),
         ])->values()->all();
 
-        return Inertia::render('stock/Suppliers', ['suppliers' => $suppliers]);
+        return Inertia::render('stock/Suppliers', [
+            'suppliers' => $suppliers,
+            'accounts' => Account::query()->where('is_active', true)->orderBy('id')->get(['id', 'name'])->toArray(),
+            'items' => StockItem::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit'])->toArray(),
+            'today' => now()->toDateString(),
+            'can' => ['pay' => $user->hasPermission(Permission::ManageCash)],
+        ]);
+    }
+
+    public function pay(SupplierPaymentRequest $request, Supplier $supplier, CashMovements $cash): RedirectResponse
+    {
+        $cash->paySupplier(
+            $supplier,
+            $request->string('amount')->toString(),
+            Account::query()->findOrFail($request->integer('account_id')),
+            $request->string('paid_on')->toString(),
+            $request->optionalString('reference'),
+            $request->optionalString('note'),
+            $request->actor(),
+        );
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment to :name saved.', ['name' => $supplier->name])]);
+
+        return back();
+    }
+
+    public function returnGoods(PurchaseReturnRequest $request, Supplier $supplier, ReturnToSupplier $action): RedirectResponse
+    {
+        $action->handle(
+            $supplier,
+            StockItem::query()->findOrFail($request->integer('stock_item_id')),
+            $request->string('quantity')->toString(),
+            $request->string('amount')->toString(),
+            $request->string('reason')->trim()->toString(),
+            $request->actor(),
+        );
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Return saved. Stock and amount owed updated.')]);
+
+        return back();
     }
 
     public function store(SupplierRequest $request): RedirectResponse

@@ -5,7 +5,12 @@
     <div class="c b">{{ strtoupper($kot->station->name) }}</div>
     @if ($reprint)<div class="c"><span class="tag">REPRINT</span></div>@endif
     <hr>
-    <div class="big b">{{ $kot->order->label() }}</div>
+    @if ($kot->order->type->value !== 'dine_in')
+        <div class="c"><span class="tag big">{{ strtoupper($kot->order->type->label()) }} · TOKEN {{ $kot->order->token }}</span></div>
+        <div class="c muted">Pack to go</div>
+    @else
+        <div class="big b">{{ $kot->order->label() }}</div>
+    @endif
     <div class="muted">Order #{{ $kot->order->number }} · {{ $kot->order->guests }} guests · {{ $kot->creator->name }}</div>
     <div class="muted">{{ $kot->created_at?->timezone('Asia/Kathmandu')->format('d M Y, h:i A') }}</div>
     <hr>

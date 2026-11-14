@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $id
  * @property string $number
+ * @property int|null $token
  * @property OrderType $type
  * @property int|null $dining_table_id
  * @property int $guests
@@ -44,6 +45,7 @@ class Order extends Model
             'type' => OrderType::class,
             'status' => OrderStatus::class,
             'guests' => 'integer',
+            'token' => 'integer',
             'subtotal' => 'decimal:2',
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
@@ -89,7 +91,11 @@ class Order extends Model
 
     public function label(): string
     {
-        return $this->diningTable !== null ? $this->diningTable->label() : $this->type->label().' #'.$this->number;
+        if ($this->diningTable !== null) {
+            return $this->diningTable->label();
+        }
+
+        return $this->type->label().' · Token '.($this->token ?? $this->number);
     }
 
     /**

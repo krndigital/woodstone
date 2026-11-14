@@ -82,6 +82,14 @@ class Bill extends Model
     }
 
     /**
+     * @return HasMany<SalesReturn, $this>
+     */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SalesReturn::class);
+    }
+
+    /**
      * @return HasMany<BillPayment, $this>
      */
     public function payments(): HasMany

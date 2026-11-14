@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import { Printer } from '@lucide/vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { Printer, Undo2 } from '@lucide/vue';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { computed, ref } from 'vue';
 import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import { Input } from '@/components/ui/input';
@@ -18,10 +27,44 @@ type Bill = {
     methods: string[];
     cashier: string;
     print_count: number;
+    returned: string;
+    has_due: boolean;
     created_at: string | null;
 };
 
-const props = defineProps<{ bills: Bill[] }>();
+const props = defineProps<{
+    bills: Bill[];
+    methods: { value: string; label: string }[];
+    can: { approve: boolean };
+}>();
+
+const returning = ref<Bill | null>(null);
+const returnForm = useForm({
+    full_cancel: true,
+    amount: '',
+    refund_method: 'cash',
+    restock: true,
+    reason: '',
+    approver_username: '',
+    approver_secret: '',
+});
+const left = (b: Bill): number => toPaisa(b.total) - toPaisa(b.returned);
+function startReturn(b: Bill): void {
+    returnForm.reset();
+    returnForm.clearErrors();
+    returnForm.refund_method = b.has_due ? 'due' : 'cash';
+    returning.value = b;
+}
+function submitReturn(): void {
+    if (!returning.value) return;
+    returnForm
+        .transform((d) => ({ ...d, restock: d.full_cancel && d.restock }))
+        .submit(BillController.returnSale(returning.value.id), {
+            preserveScroll: true,
+            onSuccess: () => (returning.value = null),
+            onFinish: () => (returnForm.approver_secret = ''),
+        });
+}
 
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Bills', href: billingIndex() }] },
@@ -156,4 +199,117 @@ function when(iso: string | null): string {
             </table>
         </div>
     </div>
+
+    <Dialog
+        :open="returning !== null"
+        @update:open="(v) => !v && (returning = null)"
+    >
+        <DialogContent v-if="returning">
+            <DialogHeader>
+                <DialogTitle>Return on bill {{ returning.number }}</DialogTitle>
+                <DialogDescription
+                    >Up to {{ rs(left(returning)) }}. The bill stays as printed;
+                    the return is recorded with a reason and
+                    approval.</DialogDescription
+                >
+            </DialogHeader>
+            <form class="flex flex-col gap-3" @submit.prevent="submitReturn">
+                <div class="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        class="h-11 rounded-lg border font-semibold"
+                        :class="
+                            returnForm.full_cancel
+                                ? 'border-foreground bg-foreground text-background'
+                                : ''
+                        "
+                        @click="returnForm.full_cancel = true"
+                    >
+                        Cancel whole bill
+                    </button>
+                    <button
+                        type="button"
+                        class="h-11 rounded-lg border font-semibold"
+                        :class="
+                            !returnForm.full_cancel
+                                ? 'border-foreground bg-foreground text-background'
+                                : ''
+                        "
+                        @click="returnForm.full_cancel = false"
+                    >
+                        Part amount
+                    </button>
+                </div>
+                <input
+                    v-if="!returnForm.full_cancel"
+                    v-model="returnForm.amount"
+                    inputmode="decimal"
+                    placeholder="Amount (Rs)"
+                    class="h-10 rounded-lg border bg-background px-3"
+                />
+                <InputError :message="returnForm.errors.amount" />
+                <label class="text-sm font-semibold">Refund by</label>
+                <select
+                    v-model="returnForm.refund_method"
+                    class="h-10 rounded-lg border bg-background px-3 text-sm"
+                >
+                    <option
+                        v-for="m in methods"
+                        :key="m.value"
+                        :value="m.value"
+                    >
+                        {{
+                            m.value === 'due'
+                                ? 'Take off customer due'
+                                : m.label
+                        }}
+                    </option>
+                </select>
+                <InputError :message="returnForm.errors.refund_method" />
+                <label
+                    v-if="returnForm.full_cancel"
+                    class="flex items-center gap-2 text-sm"
+                    ><input
+                        v-model="returnForm.restock"
+                        type="checkbox"
+                        class="size-4"
+                    />
+                    Put ingredients back into stock (food not made)</label
+                >
+                <input
+                    v-model="returnForm.reason"
+                    placeholder="Reason"
+                    class="h-10 rounded-lg border bg-background px-3"
+                />
+                <InputError
+                    :message="
+                        returnForm.errors.reason || returnForm.errors.restock
+                    "
+                />
+                <template v-if="!can.approve">
+                    <input
+                        v-model="returnForm.approver_username"
+                        placeholder="Admin username"
+                        autocomplete="off"
+                        class="h-10 rounded-lg border bg-background px-3"
+                    />
+                    <input
+                        v-model="returnForm.approver_secret"
+                        type="password"
+                        placeholder="Admin PIN or password"
+                        autocomplete="off"
+                        class="h-10 rounded-lg border bg-background px-3"
+                    />
+                </template>
+                <InputError :message="returnForm.errors.approver_username" />
+                <Button
+                    type="submit"
+                    variant="destructive"
+                    class="h-12"
+                    :disabled="returnForm.processing"
+                    >Save return</Button
+                >
+            </form>
+        </DialogContent>
+    </Dialog>
 </template>

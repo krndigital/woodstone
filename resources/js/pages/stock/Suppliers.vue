@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus } from '@lucide/vue';
+import { HandCoins, Pencil, Plus, Undo2 } from '@lucide/vue';
 import { ref } from 'vue';
 import SupplierController from '@/actions/App/Http/Controllers/Stock/SupplierController';
 import InputError from '@/components/InputError.vue';
@@ -29,7 +29,13 @@ type Supplier = {
     owed: string;
 };
 
-defineProps<{ suppliers: Supplier[] }>();
+const props = defineProps<{
+    suppliers: Supplier[];
+    accounts: { id: number; name: string }[];
+    items: { id: number; name: string; unit: string }[];
+    today: string;
+    can: { pay: boolean };
+}>();
 
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Stock', href: suppliersIndex() }] },
@@ -54,6 +60,50 @@ function edit(s: Supplier | null): void {
     form.is_active = s?.is_active ?? true;
     open.value = true;
 }
+const action = ref<'pay' | 'return' | null>(null);
+const target = ref<Supplier | null>(null);
+const payForm = useForm({
+    amount: '',
+    account_id: props.accounts[0]?.id ?? null,
+    paid_on: props.today,
+    reference: '',
+    note: '',
+});
+const returnForm = useForm({
+    stock_item_id: null as number | null,
+    quantity: '',
+    amount: '',
+    reason: '',
+});
+function startPay(s: Supplier): void {
+    target.value = s;
+    payForm.reset();
+    payForm.clearErrors();
+    payForm.amount = s.owed;
+    payForm.paid_on = props.today;
+    action.value = 'pay';
+}
+function startReturn(s: Supplier): void {
+    target.value = s;
+    returnForm.reset();
+    returnForm.clearErrors();
+    action.value = 'return';
+}
+function pay(): void {
+    if (target.value)
+        payForm.submit(SupplierController.pay(target.value.id), {
+            preserveScroll: true,
+            onSuccess: () => (action.value = null),
+        });
+}
+function returnGoods(): void {
+    if (target.value)
+        returnForm.submit(SupplierController.returnGoods(target.value.id), {
+            preserveScroll: true,
+            onSuccess: () => (action.value = null),
+        });
+}
+
 function save(): void {
     form.submit(
         current.value
@@ -192,6 +242,113 @@ function save(): void {
                     >Save</Button
                 >
             </form>
+        </SheetContent>
+    </Sheet>
+
+    <Sheet :open="action !== null" @update:open="(v) => !v && (action = null)">
+        <SheetContent class="flex flex-col gap-4 overflow-y-auto">
+            <template v-if="action === 'pay' && target">
+                <SheetHeader
+                    ><SheetTitle>Pay {{ target.name }}</SheetTitle
+                    ><SheetDescription
+                        >We owe {{ rs(target.owed) }}</SheetDescription
+                    ></SheetHeader
+                >
+                <form class="flex flex-col gap-3 px-4" @submit.prevent="pay">
+                    <div class="grid gap-2">
+                        <Label>Amount (Rs)</Label
+                        ><Input
+                            v-model="payForm.amount"
+                            inputmode="decimal"
+                        /><InputError :message="payForm.errors.amount" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label>Paid from</Label
+                        ><select
+                            v-model="payForm.account_id"
+                            class="h-10 rounded-lg border bg-background px-3 text-sm"
+                        >
+                            <option
+                                v-for="a in accounts"
+                                :key="a.id"
+                                :value="a.id"
+                            >
+                                {{ a.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="grid gap-2">
+                        <Label>Date</Label
+                        ><Input
+                            v-model="payForm.paid_on"
+                            type="date"
+                            :max="today"
+                        /><InputError :message="payForm.errors.paid_on" />
+                    </div>
+                    <Input
+                        v-model="payForm.reference"
+                        placeholder="Cheque / transaction no. (optional)"
+                    />
+                    <Button
+                        type="submit"
+                        class="h-12"
+                        :disabled="payForm.processing"
+                        >Save payment</Button
+                    >
+                </form>
+            </template>
+            <template v-else-if="action === 'return' && target">
+                <SheetHeader
+                    ><SheetTitle>Return goods to {{ target.name }}</SheetTitle
+                    ><SheetDescription
+                        >Stock goes down and we owe less.</SheetDescription
+                    ></SheetHeader
+                >
+                <form
+                    class="flex flex-col gap-3 px-4"
+                    @submit.prevent="returnGoods"
+                >
+                    <select
+                        v-model="returnForm.stock_item_id"
+                        class="h-10 rounded-lg border bg-background px-3 text-sm"
+                    >
+                        <option :value="null" disabled>Item</option>
+                        <option v-for="i in items" :key="i.id" :value="i.id">
+                            {{ i.name }} ({{ i.unit }})
+                        </option>
+                    </select>
+                    <InputError :message="returnForm.errors.stock_item_id" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <Input
+                            v-model="returnForm.quantity"
+                            inputmode="decimal"
+                            placeholder="Quantity (base unit)"
+                        />
+                        <Input
+                            v-model="returnForm.amount"
+                            inputmode="decimal"
+                            placeholder="Credit (Rs)"
+                        />
+                    </div>
+                    <InputError
+                        :message="
+                            returnForm.errors.quantity ||
+                            returnForm.errors.amount
+                        "
+                    />
+                    <Input
+                        v-model="returnForm.reason"
+                        placeholder="Reason (damaged, expired…)"
+                    />
+                    <InputError :message="returnForm.errors.reason" />
+                    <Button
+                        type="submit"
+                        class="h-12"
+                        :disabled="returnForm.processing"
+                        >Save return</Button
+                    >
+                </form>
+            </template>
         </SheetContent>
     </Sheet>
 </template>

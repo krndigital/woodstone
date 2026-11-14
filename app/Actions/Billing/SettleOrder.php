@@ -20,6 +20,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\BillCalculator;
+use App\Support\CashBook;
 use App\Support\ManagerApproval;
 use App\Support\Money;
 use App\Support\NumberSequence;
@@ -153,6 +154,10 @@ final class SettleOrder
                     'received_by' => $cashier->id,
                     'created_at' => now(),
                 ])->save();
+
+                if ($method !== PaymentMethod::Due) {
+                    CashBook::post(CashBook::accountForMethod($method->value), Money::toPaisa($p['amount']), 'bill_payment', $payment->id, $cashier, 'Bill '.$bill->number);
+                }
             }
 
             foreach ($duePerCustomer as $customerId => $due) {

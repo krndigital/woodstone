@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
+    BookOpenCheck,
+    CalendarCheck,
     ChefHat,
+    Wallet,
     HandCoins,
     ReceiptText,
     LayoutGrid,
@@ -34,6 +37,8 @@ import { index as customersIndex } from '@/routes/customers';
 import { index as floorIndex } from '@/routes/floor';
 import { index as kitchenIndex } from '@/routes/kitchen';
 import { index as menuIndex } from '@/routes/menu';
+import { cashBook, day } from '@/routes/money';
+import { index as expensesIndex } from '@/routes/money/expenses';
 import { index as posIndex } from '@/routes/pos';
 import { index as stockIndex } from '@/routes/stock/items';
 import { index as terminalsIndex } from '@/routes/terminals';
@@ -61,6 +66,26 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Customers & dues',
             href: customersIndex(),
             icon: HandCoins,
+        });
+    }
+
+    if (can('cash.day')) {
+        items.push({
+            title: 'Day open / close',
+            href: day(),
+            icon: CalendarCheck,
+        });
+    }
+
+    if (can('expenses.create')) {
+        items.push({ title: 'Expenses', href: expensesIndex(), icon: Wallet });
+    }
+
+    if (can('cash.manage')) {
+        items.push({
+            title: 'Cash book',
+            href: cashBook(),
+            icon: BookOpenCheck,
         });
     }
 

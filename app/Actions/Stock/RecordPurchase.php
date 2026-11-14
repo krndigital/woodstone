@@ -14,6 +14,7 @@ use App\Models\StockItem;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\CashBook;
 use App\Support\Money;
 use App\Support\NumberSequence;
 use App\Support\Qty;
@@ -104,6 +105,10 @@ final class RecordPurchase
                 'note' => $details['note'],
                 'created_by' => $by->id,
             ])->save();
+
+            if ($paid > 0 && $details['paid_method'] !== null) {
+                CashBook::post(CashBook::accountForMethod($details['paid_method']), -$paid, 'purchase', $purchase->id, $by, 'Purchase '.$purchase->number.' · '.$supplier->name, null, $details['purchased_on']);
+            }
 
             foreach ($prepared as $p) {
                 $row = new PurchaseLine;

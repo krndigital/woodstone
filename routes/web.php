@@ -12,6 +12,9 @@ use App\Http\Controllers\Menu\MenuCategoryController;
 use App\Http\Controllers\Menu\MenuController;
 use App\Http\Controllers\Menu\MenuItemController;
 use App\Http\Controllers\Menu\StationController;
+use App\Http\Controllers\Money\CashBookController;
+use App\Http\Controllers\Money\DayController;
+use App\Http\Controllers\Money\ExpenseController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Stock\PurchaseController;
 use App\Http\Controllers\Stock\PurchaseOrderController;
@@ -84,6 +87,7 @@ Route::middleware('auth')->group(function () {
         Route::get('orders/{order}', [BillController::class, 'checkout'])->name('checkout');
         Route::post('orders/{order}/settle', [BillController::class, 'settle'])->middleware('throttle:20,1')->name('settle');
         Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
+        Route::post('bills/{bill}/return', [BillController::class, 'returnSale'])->middleware('throttle:10,1')->name('bills.return');
     });
 
     // Customers, groups and dues (step 8).
@@ -95,6 +99,26 @@ Route::middleware('auth')->group(function () {
         Route::post('customers/{customer}/payments', [CustomerController::class, 'receive'])->middleware('throttle:30,1')->name('customers.payments.store');
         Route::post('customers/{customer}/move', [CustomerController::class, 'move'])->middleware('throttle:10,1')->name('customers.move');
         Route::post('customer-groups', [CustomerController::class, 'storeGroup'])->name('customer-groups.store');
+    });
+
+    // Money: cash book, expenses, day open/close (step 10).
+    Route::middleware('can:cash.manage')->prefix('money')->name('money.')->group(function () {
+        Route::get('cash-book', [CashBookController::class, 'index'])->name('cash-book');
+        Route::post('cash-book/entries', [CashBookController::class, 'manual'])->name('cash-book.entries');
+        Route::post('cash-book/transfers', [CashBookController::class, 'transfer'])->name('cash-book.transfers');
+        Route::patch('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
+        Route::post('recurring-expenses', [ExpenseController::class, 'storeRecurring'])->name('recurring.store');
+        Route::put('recurring-expenses/{recurringExpense}', [ExpenseController::class, 'updateRecurring'])->name('recurring.update');
+    });
+    Route::middleware('can:expenses.create')->prefix('money')->name('money.')->group(function () {
+        Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('expenses', [ExpenseController::class, 'store'])->middleware('throttle:30,1')->name('expenses.store');
+        Route::get('expenses/{expense}/receipt', [ExpenseController::class, 'receipt'])->name('expenses.receipt');
+    });
+    Route::middleware('can:cash.day')->prefix('money')->name('money.')->group(function () {
+        Route::get('day', [DayController::class, 'index'])->name('day');
+        Route::post('day/open', [DayController::class, 'open'])->name('day.open');
+        Route::post('day/close', [DayController::class, 'close'])->name('day.close');
     });
 
     // Stock & purchase (step 9).
@@ -115,6 +139,8 @@ Route::middleware('auth')->group(function () {
         Route::get('suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
         Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::post('suppliers/{supplier}/payments', [SupplierController::class, 'pay'])->name('suppliers.payments.store');
+        Route::post('suppliers/{supplier}/returns', [SupplierController::class, 'returnGoods'])->name('suppliers.returns.store');
 
         Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
         Route::put('recipes/{menuItem}', [RecipeController::class, 'update'])->name('recipes.update');
