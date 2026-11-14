@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     LayoutPanelTop,
     MonitorSmartphone,
+    Settings2,
     UtensilsCrossed,
     Users,
 } from '@lucide/vue';
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
+import { edit as settingsEdit } from '@/routes/admin/settings';
 import { index as floorIndex } from '@/routes/floor';
 import { index as menuIndex } from '@/routes/menu';
 import { index as terminalsIndex } from '@/routes/terminals';
@@ -57,6 +59,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Terminals',
             href: terminalsIndex(),
             icon: MonitorSmartphone,
+        });
+    }
+
+    if (can('settings.manage')) {
+        items.push({
+            title: 'Settings',
+            href: settingsEdit(),
+            icon: Settings2,
         });
     }
 

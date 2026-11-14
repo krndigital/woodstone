@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Enums\Permission;
 use App\Models\User;
 use App\Support\Audit;
+use App\Support\Settings;
 use App\Support\TerminalContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Settings::flush();
         $this->configureDefaults();
         $this->configureGates();
         $this->configureAuthEvents();

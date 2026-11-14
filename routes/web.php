@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
 use App\Http\Controllers\Floor\FloorController;
 use App\Http\Controllers\Menu\MenuCategoryController;
@@ -31,6 +32,12 @@ Route::middleware('auth')->group(function () {
         Route::put('users/{user}/password', [UserController::class, 'resetPassword'])->middleware('throttle:20,1')->name('users.password');
         Route::delete('users/{user}/pin', [UserController::class, 'clearPin'])->name('users.pin.clear');
         Route::patch('users/{user}/pin/unlock', [UserController::class, 'unlockPin'])->name('users.pin.unlock');
+    });
+
+    // Restaurant, tax and billing settings (step 4) — Super Admin only.
+    Route::middleware('can:settings.manage')->group(function () {
+        Route::get('admin/settings', [SettingsController::class, 'edit'])->name('admin.settings.edit');
+        Route::put('admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
     });
 
     // Floor (step 3).

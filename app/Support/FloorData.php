@@ -13,7 +13,7 @@ use App\Models\Zone;
 final class FloorData
 {
     /**
-     * @return list<array{id: int, name: string, sort_order: int, is_active: bool}>
+     * @return array<int, array{id: int, name: string, sort_order: int, is_active: bool}>
      */
     public static function zones(bool $includeInactive = false): array
     {
@@ -26,7 +26,7 @@ final class FloorData
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return array<int, array<string, mixed>>
      */
     public static function tables(bool $includeInactive = false): array
     {
