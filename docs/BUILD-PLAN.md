@@ -61,6 +61,16 @@ Sources: `docs/requirements.md` (FR IDs), `docs/DECISIONS.md` (wins on conflict)
 - **14 Waiter app / QR**: the POS is installable on phones (PWA); guest QR page with call waiter, ringing staff banner, kitchen ping. Guest self-ordering is not included (D-decision pending).
 - **15 Hardening**: CSP, health check with database, daily backup command + schedule, `docs/DEPLOY.md`, `docs/UAT.md`, k6 load script. Server install, monitoring account and UAT with the client happen on site.
 
+### Gap work after step 15 (all CI green)
+
+- **Bikram Sambat**: BS dates on bills, KOT and daily report; fiscal year worked out from BS (FR-14).
+- **Billing extras**: counter sale, bank transfer, round-off setting, complimentary (approval), due receipt print, customer statement + WhatsApp link.
+- **Loyalty**: points earn/redeem/expiry, Silver/Gold tiers, visit history, birthdays (FR-10.5/10.6).
+- **Accounting**: automatic double-entry ledger, trial balance, balance sheet, cash flow, manual journals, payables ageing, opening balances (FR-13, FR-15).
+- **Floor**: bookings with advance (used on the bill, refunded or kept), cabin minimum spend, item status history, kitchen-times and guest-call reports, guest calls routed to the table's waiter (FR-1.4, FR-1.5, FR-3.5, FR-16).
+- **Stock**: expiry date per purchase line, "expiring within 7 days" alert on the stock page (FR-7.8, light version).
+- **Still open**: store-to-kitchen issue (FR-7.7) needs separate store/kitchen stock locations — one pool today; strict first-expiry-first-out batch costing (FR-7.8 full); design-canvas look (D-09).
+
 ## Definition of done (per step)
 
 1. CI green on the PR (all three jobs).
