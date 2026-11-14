@@ -102,7 +102,7 @@ class CustomerController extends Controller
 
         return Inertia::render('customers/Show', [
             'customer' => ['id' => $customer->id, 'name' => $customer->name, 'phone' => $customer->phone, 'credit_limit' => $customer->credit_limit, 'is_active' => $customer->is_active],
-            'summary' => array_map(fn (int|string|null $v): string|null => is_int($v) ? Money::fromPaisa($v) : $v, DuesData::summary($customer)),
+            'summary' => array_map(fn (int|string|null $v): ?string => is_int($v) ? Money::fromPaisa($v) : $v, DuesData::summary($customer)),
             'entries' => array_reverse($rows),
         ]);
     }

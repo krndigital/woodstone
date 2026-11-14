@@ -44,6 +44,7 @@ class BillingTest extends TestCase
     public function test_access_by_role(): void
     {
         $order = $this->sentOrder();
+        $this->app['auth']->forgetGuards();
 
         $this->get(route('billing.checkout', $order))->assertRedirect(route('login'));
         $this->actingAs(User::factory()->role(Role::Waiter)->create())->get(route('billing.checkout', $order))->assertForbidden();
