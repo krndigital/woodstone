@@ -5,6 +5,7 @@ import {
     LayoutPanelTop,
     MonitorSmartphone,
     Settings2,
+    ShoppingCart,
     UtensilsCrossed,
     Users,
 } from '@lucide/vue';
@@ -26,6 +27,7 @@ import { dashboard } from '@/routes';
 import { edit as settingsEdit } from '@/routes/admin/settings';
 import { index as floorIndex } from '@/routes/floor';
 import { index as menuIndex } from '@/routes/menu';
+import { index as posIndex } from '@/routes/pos';
 import { index as terminalsIndex } from '@/routes/terminals';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -37,6 +39,10 @@ const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
     ];
+
+    if (can('pos.use')) {
+        items.push({ title: 'POS', href: posIndex(), icon: ShoppingCart });
+    }
 
     if (can('floor.view')) {
         items.push({
