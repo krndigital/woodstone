@@ -21,7 +21,11 @@
 </head>
 <body>
 @yield('body')
-<div class="noprint"><button onclick="window.print()">Print</button> <button onclick="window.close()">Close</button></div>
-<script>window.addEventListener('load', () => setTimeout(() => window.print(), 150));</script>
+<div class="noprint"><button type="button" id="print-btn">Print</button> <button type="button" id="close-btn">Close</button></div>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+    document.getElementById('print-btn').addEventListener('click', () => window.print());
+    document.getElementById('close-btn').addEventListener('click', () => window.close());
+    window.addEventListener('load', () => setTimeout(() => window.print(), 150));
+</script>
 </body>
 </html>

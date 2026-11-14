@@ -41,18 +41,25 @@ Sources: `docs/requirements.md` (FR IDs), `docs/DECISIONS.md` (wins on conflict)
 | 7    | Billing: discount %/Rs, payments (cash, manual QR, card, due), split by amount/items, bill print 80 mm, reprint COPY                                              | FR-4, D-03, D-05, D-07 | ✅     |
 | 8    | Customers, groups & dues ledger: receive, move due, limits                                                                                                        | FR-10, M15, D-07       | ✅     |
 | 9    | Stock & purchase: items, recipes, stock movements, POs, suppliers                                                                                                 | FR-6/7                 | ✅     |
-| 10   | Cash book, expenses, payables & receivables, day open/close                                                                                                       | FR-8/9, M15            |        |
-| 11   | Reports + Excel/PDF export                                                                                                                                        | §6, D-08               |        |
-| 12   | Owner dashboard (live tables, charts, filters)                                                                                                                    | FR-11                  |        |
-| 13   | Staff, attendance, payroll                                                                                                                                        | FR-12                  |        |
-| 14   | Waiter phone app, guest QR menu, call waiter                                                                                                                      | M16                    |        |
-| 15   | Hardening: backups, monitoring, deploy to server, load test, UAT with client                                                                                      | 9A                     |        |
+| 10   | Cash book, expenses, payables & receivables, day open/close                                                                                                       | FR-8/9, M15            | ✅     |
+| 11   | Reports + Excel/PDF export                                                                                                                                        | §6, D-08               | ✅     |
+| 12   | Owner dashboard (live tables, charts, filters)                                                                                                                    | FR-11                  | ✅     |
+| 13   | Staff, attendance, payroll                                                                                                                                        | FR-12                  | ✅     |
+| 14   | Waiter phone app, guest QR menu, call waiter                                                                                                                      | M16                    | ✅     |
+| 15   | Hardening: backups, monitoring, deploy to server, load test, UAT with client                                                                                      | 9A                     | ✅     |
 
 ## Notes on finished steps
 
 - **6 Kitchen display** polls every 8 s. Reverb push can replace polling later without changing the controller.
 - **7 Billing**: bill cancel / sales return with Admin approval (FR-4.4, FR-4.8), day open/close (FR-4.6) and takeaway token / packaging charge (FR-4.7) move to step 10.
 - **9 Stock**: supplier payments and payable ledger (FR-6.3), purchase returns (FR-6.7), batches and expiry (FR-7.8) and store-to-kitchen issue (FR-7.7) move to step 10. Stock may go below zero after sales; the stock page shows it in red so the store keeper can count.
+
+- **10 Money**: cash book, expenses with receipts and monthly reminders, day open/close, supplier payments and returns, bill return/cancel, takeaway token. Day open is recommended, not forced, so service never stops.
+- **11 Reports**: 15 reports, Excel (.xlsx, built in) and PDF (print page → Save as PDF). Dates are AD; Bikram Sambat display is a follow-up.
+- **12 Dashboard**: owner KPIs refresh every 30 s.
+- **13 Staff**: attendance by PIN, leave, advances, salary sheet; salary payment posts a Salary expense.
+- **14 Waiter app / QR**: the POS is installable on phones (PWA); guest QR page with call waiter, ringing staff banner, kitchen ping. Guest self-ordering is not included (D-decision pending).
+- **15 Hardening**: CSP, health check with database, daily backup command + schedule, `docs/DEPLOY.md`, `docs/UAT.md`, k6 load script. Server install, monitoring account and UAT with the client happen on site.
 
 ## Definition of done (per step)
 

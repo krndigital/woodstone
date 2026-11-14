@@ -12,10 +12,14 @@ use App\Support\TerminalContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\DiagnosingHealth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -32,6 +36,19 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureGates();
         $this->configureAuthEvents();
+        $this->configureRateLimits();
+
+        // /up health check also proves the database answers (step 15 monitoring).
+        Event::listen(DiagnosingHealth::class, fn () => DB::select('select 1'));
+    }
+
+    /**
+     * Public QR page limits, each with its own bucket so they never add up (FR-16.4).
+     */
+    protected function configureRateLimits(): void
+    {
+        RateLimiter::for('guest', fn (Request $request): Limit => Limit::perMinute(60)->by('guest|'.$request->ip()));
+        RateLimiter::for('guest-call', fn (Request $request): Limit => Limit::perMinute(6)->by('guest-call|'.$request->ip()));
     }
 
     protected function configureDefaults(): void

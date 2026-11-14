@@ -29,7 +29,7 @@
         };
     };
 @endphp
-<div class="noprint"><button onclick="window.print()">Save as PDF / Print</button></div>
+<div class="noprint"><button type="button" id="print-btn">Save as PDF / Print</button></div>
 <div class="bar">
     <div><h1>{{ $meta['title'] }}</h1><div class="muted">{{ $restaurant }}</div></div>
     <div class="muted">{{ $period->label() }}<br>Printed {{ now()->format('d M Y, h:i A') }}</div>
@@ -48,6 +48,9 @@
     @endif
 </table>
 @foreach ($data['notes'] as $note)<p class="muted">{{ $note }}</p>@endforeach
-<script>window.addEventListener('load', () => setTimeout(() => window.print(), 200));</script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+    document.getElementById('print-btn').addEventListener('click', () => window.print());
+    window.addEventListener('load', () => setTimeout(() => window.print(), 200));
+</script>
 </body>
 </html>

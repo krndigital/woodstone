@@ -35,10 +35,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
 
 // Public QR page per seat: live menu and call waiter (step 14, FR-5.2, M16).
-Route::middleware('throttle:60,1')->group(function () {
+Route::middleware('throttle:guest')->group(function () {
     Route::get('t/{token}', [GuestController::class, 'show'])->name('guest.table');
     Route::get('t/{token}/calls/{publicId}', [GuestController::class, 'status'])->name('guest.calls.status');
-    Route::post('t/{token}/calls', [GuestController::class, 'call'])->middleware('throttle:6,1')->name('guest.calls.store');
+    Route::post('t/{token}/calls', [GuestController::class, 'call'])->middleware('throttle:guest-call')->name('guest.calls.store');
 });
 
 // Quick PIN switch on registered terminals (D-06).
