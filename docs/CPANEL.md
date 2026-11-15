@@ -4,7 +4,7 @@ For a shared or reseller cPanel account. For your own Ubuntu server use `docs/DE
 
 ## What the host must have
 
-- PHP **8.3 or newer** with: pdo_mysql (or pdo_pgsql), mbstring, openssl, xml, ctype, fileinfo, bcmath, zip, gd.
+- PHP **8.3 or newer** with: pdo_mysql (or pdo_pgsql), mbstring, openssl, xml, ctype, fileinfo, zip, gd.
   Set it in **cPanel → MultiPHP Manager** (or _Select PHP Version_).
 - A **MySQL 8 / MariaDB 10.6+** database (tested in CI on MySQL 8), or PostgreSQL if the host offers it.
 - **Terminal** in cPanel (or SSH). Without it, ask the host to run the two commands in step 5 once.
@@ -36,7 +36,7 @@ Turn on **SSL/TLS Status → Run AutoSSL** so the site opens on https.
 
 ## 5. Settings and install
 
-In File Manager, copy `woodstone/.env.example` to `woodstone/.env` and edit it:
+In File Manager, copy `woodstone/.env.cpanel.example` to `woodstone/.env` and edit it (type the database password yourself):
 
 ```
 APP_NAME="WoodStone RMS"

@@ -23,7 +23,7 @@ class InstallCommand extends Command
 
     public function handle(): int
     {
-        $missing = array_values(array_filter(['pdo', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'fileinfo', 'bcmath', 'zip'], fn (string $e): bool => ! extension_loaded($e)));
+        $missing = array_values(array_filter(['pdo', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'fileinfo', 'zip'], fn (string $e): bool => ! extension_loaded($e)));
         if ($missing !== []) {
             $this->error('PHP '.PHP_VERSION.' is missing: '.implode(', ', $missing).'. Turn them on in cPanel → Select PHP Version.');
 
