@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write # only used to attach the zip to a v* release
+      contents: write # attach the zip to a v* release and publish it on the cpanel-package branch
 
     steps:
       - name: Checkout code
@@ -78,3 +78,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${GITHUB_REF_NAME}" dist/woodstone-cpanel.zip --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --notes "cPanel package. See docs/CPANEL.md." || gh release upload "${GITHUB_REF_NAME}" dist/woodstone-cpanel.zip --clobber --repo "${GITHUB_REPOSITORY}"
+
+      - name: Publish on the cpanel-package branch (direct download, newest main only)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir pkg && cp dist/woodstone-cpanel.zip pkg/
+          cd pkg
+          printf '# WoodStone RMS: cPanel package\n\nBuilt from %s on %s.\nDownload woodstone-cpanel.zip and follow docs/CPANEL.md on main.\n' "${GITHUB_SHA::7}" "$(date -u +%F)" > README.md
+          git init -q -b cpanel-package
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -qm "cPanel package from ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" cpanel-package
