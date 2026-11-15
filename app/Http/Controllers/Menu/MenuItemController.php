@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Menu;
 
+use App\Actions\Menu\LoadWoodstoneMenu;
 use App\Actions\Menu\SaveMenuItem;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Menu\LoadMenuRequest;
 use App\Http\Requests\Menu\MenuImageRequest;
 use App\Http\Requests\Menu\MenuItemRequest;
 use App\Models\MenuItem;
@@ -30,6 +32,18 @@ class MenuItemController extends Controller
         $save->handle($request->validated(), $item);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Saved :name.', ['name' => $item->name])]);
+
+        return back();
+    }
+
+    /**
+     * Loads WoodStone's own menu with prices and photos; safe to run again.
+     */
+    public function loadPreset(LoadMenuRequest $request, LoadWoodstoneMenu $load): RedirectResponse
+    {
+        $c = $load->handle($request->user(), $request->boolean('archive_others'));
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('WoodStone menu loaded: :a added, :u updated, :r archived.', ['a' => $c['created'], 'u' => $c['updated'], 'r' => $c['archived']])]);
 
         return back();
     }
@@ -84,7 +98,8 @@ class MenuItemController extends Controller
         $old = $item->image_path;
         $item->forceFill(['image_path' => $path])->save();
 
-        if ($old !== null) {
+        // Shared WoodStone menu photos are used by several items; never delete those.
+        if ($old !== null && ! str_starts_with($old, LoadWoodstoneMenu::PHOTO_DIR.'/')) {
             Storage::disk('public')->delete($old);
         }
 
@@ -97,7 +112,9 @@ class MenuItemController extends Controller
     public function removeImage(MenuItem $item): RedirectResponse
     {
         if ($item->image_path !== null) {
-            Storage::disk('public')->delete($item->image_path);
+            if (! str_starts_with($item->image_path, LoadWoodstoneMenu::PHOTO_DIR.'/')) {
+                Storage::disk('public')->delete($item->image_path);
+            }
             $item->forceFill(['image_path' => null])->save();
             Audit::record('menu.image_removed', $item);
         }

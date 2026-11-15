@@ -230,6 +230,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:menu.manage')->prefix('menu')->name('menu.')->group(function () {
         Route::post('items', [MenuItemController::class, 'store'])->name('items.store');
+        Route::post('load-woodstone', [MenuItemController::class, 'loadPreset'])->middleware('throttle:5,1')->name('load-woodstone');
         Route::put('items/{item}', [MenuItemController::class, 'update'])->name('items.update');
         Route::patch('items/{item}/archive', [MenuItemController::class, 'archive'])->name('items.archive');
         Route::patch('items/{item}/restore', [MenuItemController::class, 'restore'])->name('items.restore');

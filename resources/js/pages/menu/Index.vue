@@ -2,6 +2,7 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import {
     Archive,
+    BookOpen,
     ImagePlus,
     Pencil,
     Plus,
@@ -96,6 +97,30 @@ const rs = (v: string | null): string =>
 function toPaisa(v: string): number | null {
     const m = /^(\d{1,7})(?:\.(\d{1,2}))?$/.exec(v.trim());
     return m ? Number(m[1]) * 100 + Number((m[2] ?? '0').padEnd(2, '0')) : null;
+}
+
+/* ---------- WoodStone's own menu (prices + photos), safe to run again ---------- */
+const loadingPreset = ref(false);
+function loadPreset(): void {
+    if (
+        !window.confirm(
+            'Load the WoodStone menu (162 items with prices and photos)? Existing items with the same code get the new name and price.',
+        )
+    ) {
+        return;
+    }
+    const archiveOthers = window.confirm(
+        'Also archive items that are not on the WoodStone menu (for example the demo items)? OK = archive, Cancel = keep them.',
+    );
+    router.post(
+        MenuItemController.loadPreset().url,
+        { archive_others: archiveOthers },
+        {
+            preserveScroll: true,
+            onStart: () => (loadingPreset.value = true),
+            onFinish: () => (loadingPreset.value = false),
+        },
+    );
 }
 
 /* ---------- filters (client side; a menu is small) ---------- */
@@ -392,6 +417,15 @@ function saveStation(): void {
                         Categories & stations
                     </button>
                 </div>
+                <Button
+                    v-if="can.manage && tab === 'items'"
+                    variant="outline"
+                    class="h-11"
+                    :disabled="loadingPreset"
+                    @click="loadPreset"
+                >
+                    <BookOpen class="size-4" /> Load WoodStone menu
+                </Button>
                 <Button
                     v-if="can.manage && tab === 'items'"
                     class="h-11"

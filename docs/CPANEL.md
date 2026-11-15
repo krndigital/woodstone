@@ -80,6 +80,7 @@ off the server weekly, or turn on cPanel's own **Backup**.
 ## 7. Check
 
 Open the site → sign in as the owner → **Settings** (restaurant name, PAN, fiscal year) → **Users** (add staff).
+Then **Menu → Load WoodStone menu** (or `php artisan woodstone:load-menu`) adds all 162 items with prices and photos.
 `https://rms.example.com/up` shows a green page when the app and database are fine.
 
 ## Updating later
