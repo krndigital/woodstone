@@ -148,7 +148,8 @@ class MenuTest extends TestCase
 
         $this->assertSame('240.00', $item->refresh()->price);
         $log = AuditLog::query()->where('action', 'menu.price_changed')->firstOrFail();
-        $this->assertSame(['old' => '220.00', 'new' => '240.00'], $log->properties);
+        // assertEquals: MySQL JSON columns do not keep key order.
+        $this->assertEquals(['old' => '220.00', 'new' => '240.00'], $log->properties);
     }
 
     public function test_kitchen_and_cashier_can_mark_items_sold_out_but_waiters_cannot(): void

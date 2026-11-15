@@ -24,8 +24,8 @@ class InstallCommand extends Command
     public function handle(): int
     {
         $missing = array_values(array_filter(['pdo', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'fileinfo', 'bcmath', 'zip'], fn (string $e): bool => ! extension_loaded($e)));
-        if (PHP_VERSION_ID < 80300 || $missing !== []) {
-            $this->error('Needs PHP 8.3+ with: '.implode(', ', $missing ?: ['(all extensions ok)']).'. Now PHP '.PHP_VERSION.'. Change it in cPanel → Select PHP Version / MultiPHP Manager.');
+        if ($missing !== []) {
+            $this->error('PHP '.PHP_VERSION.' is missing: '.implode(', ', $missing).'. Turn them on in cPanel → Select PHP Version.');
 
             return self::FAILURE;
         }
