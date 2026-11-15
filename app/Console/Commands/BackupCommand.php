@@ -56,6 +56,25 @@ class BackupCommand extends Command
 
                 return self::FAILURE;
             }
+        } elseif (in_array($driver, ['mysql', 'mariadb'], true)) {
+            // cPanel hosting (docs/CPANEL.md). Password goes through MYSQL_PWD, never on the command line.
+            $target = "{$dir}/woodstone-{$stamp}.sql.gz";
+            $result = Process::env(['MYSQL_PWD' => (string) ($cfg['password'] ?? '')])
+                ->timeout(600)
+                ->run(sprintf(
+                    'mysqldump --single-transaction --no-tablespaces -h %s -P %s -u %s %s | gzip > %s',
+                    escapeshellarg((string) ($cfg['host'] ?? '127.0.0.1')),
+                    escapeshellarg((string) ($cfg['port'] ?? '3306')),
+                    escapeshellarg((string) ($cfg['username'] ?? '')),
+                    escapeshellarg((string) ($cfg['database'] ?? '')),
+                    escapeshellarg($target),
+                ));
+            if (! $result->successful() || ! is_file($target) || filesize($target) < 100) {
+                File::delete($target);
+                $this->error('mysqldump failed: '.trim($result->errorOutput()));
+
+                return self::FAILURE;
+            }
         } else {
             $this->error("Backups are not set up for the {$driver} driver.");
 

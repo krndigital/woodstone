@@ -1,0 +1,10 @@
+# cPanel fallback (docs/CPANEL.md): only used when the domain's document root is this folder
+# instead of public/. Sends every request into public/ and hides everything else (.env, storage, vendor).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # SSL certificate checks (AutoSSL / Let's Encrypt) stay in this folder.
+    RewriteRule ^\.well-known/ - [L]
+    RewriteRule ^(\.env|\.git|storage|vendor|database|bootstrap|config|routes|app|tests|composer\.|artisan) - [F,L,NC]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>

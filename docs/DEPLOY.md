@@ -1,5 +1,7 @@
 # Deploy, backup and monitoring (step 15)
 
+> On cPanel shared hosting follow `docs/CPANEL.md` instead.
+
 Target: one Ubuntu 24.04 server (NepalHost VPS or the restaurant's local server), PHP 8.3, PostgreSQL 16, Redis, Nginx, HTTPS.
 
 ## 1. Server packages (server)
