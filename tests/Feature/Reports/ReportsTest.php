@@ -92,7 +92,7 @@ class ReportsTest extends TestCase
     {
         $this->sale();
         $this->actingAs(User::factory()->superAdmin()->create())->get(route('dashboard'))
-            ->assertInertia(fn (Assert $page) => $page->component('Dashboard')->where('owner.kpis.sales', 100000)->where('owner.kpis.bills', 1)->has('owner.topItems', 1)->where('owner.mix.cash', 100000));
+            ->assertInertia(fn (Assert $page) => $page->component('Dashboard')->where('owner.kpis.sales', 100000)->where('owner.kpis.bills', 1)->has('owner.topItems', 1)->where('owner.mix.cash', 100000)->has('owner.recentBills', 1)->where('owner.recentBills.0.total', '1000.00')->where('owner.recentBills.0.methods', ['Cash']));
         $this->actingAs(User::factory()->superAdmin()->create())->get(route('dashboard', ['range' => 'month']))->assertInertia(fn (Assert $page) => $page->where('owner.range', 'month'));
         $this->actingAs(User::factory()->role(Role::Waiter)->create())->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('owner', null));
     }

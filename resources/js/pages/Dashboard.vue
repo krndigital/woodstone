@@ -4,6 +4,7 @@ import {
     CalendarCheck,
     ChefHat,
     Clock,
+    Printer,
     ReceiptText,
     RefreshCw,
     ShieldCheck,
@@ -11,6 +12,7 @@ import {
     Users,
 } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted } from 'vue';
+import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
 import { usePermissions } from '@/composables/usePermissions';
 import { minutesSince, rs } from '@/lib/money';
@@ -50,6 +52,16 @@ type Owner = {
         guests: number;
     }[];
     openCount: number;
+    recentBills: {
+        id: number;
+        number: string;
+        label: string;
+        total: string;
+        due: string;
+        methods: string[];
+        cashier: string;
+        created_at: string | null;
+    }[];
 };
 
 const props = defineProps<{ owner: Owner | null }>();
@@ -57,6 +69,20 @@ const props = defineProps<{ owner: Owner | null }>();
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Dashboard', href: dashboard() }] },
 });
+
+function billTime(iso: string | null): string {
+    return iso
+        ? new Date(iso).toLocaleString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+          })
+        : '';
+}
+function printBill(id: number): void {
+    window.open(BillController.print(id).url, '_blank', 'width=380,height=700');
+}
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -370,6 +396,79 @@ const quick = computed(() =>
                     >
                         No tables running right now.
                     </p>
+                </div>
+            </section>
+
+            <section class="flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold">Recent bills</h2>
+                    <Link
+                        :href="billingIndex().url"
+                        class="text-sm font-semibold text-orange-700"
+                        >All bills →</Link
+                    >
+                </div>
+                <div class="overflow-x-auto rounded-xl border">
+                    <table class="w-full text-sm">
+                        <thead class="bg-muted text-left">
+                            <tr>
+                                <th class="p-3">Bill</th>
+                                <th class="p-3">Table / order</th>
+                                <th class="p-3">Time</th>
+                                <th class="p-3">Paid by</th>
+                                <th class="p-3">Cashier</th>
+                                <th class="p-3 text-right">Total</th>
+                                <th class="p-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="b in owner.recentBills"
+                                :key="b.id"
+                                class="border-t"
+                            >
+                                <td class="p-3 font-semibold tabular-nums">
+                                    {{ b.number }}
+                                </td>
+                                <td class="p-3">{{ b.label }}</td>
+                                <td class="p-3 text-muted-foreground">
+                                    {{ billTime(b.created_at) }}
+                                </td>
+                                <td class="p-3">
+                                    {{ b.methods.join(' + ')
+                                    }}<span
+                                        v-if="Number(b.due) > 0"
+                                        class="ml-1 text-xs font-semibold text-red-600"
+                                        >{{ rs(b.due) }} on due</span
+                                    >
+                                </td>
+                                <td class="p-3">{{ b.cashier }}</td>
+                                <td
+                                    class="p-3 text-right font-semibold tabular-nums"
+                                >
+                                    {{ rs(b.total) }}
+                                </td>
+                                <td class="p-3 text-right">
+                                    <button
+                                        v-if="can('billing.take_payment')"
+                                        type="button"
+                                        class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold"
+                                        @click="printBill(b.id)"
+                                    >
+                                        <Printer class="size-3" /> Print
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr v-if="owner.recentBills.length === 0">
+                                <td
+                                    colspan="7"
+                                    class="p-6 text-center text-muted-foreground"
+                                >
+                                    No bills yet today.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </template>

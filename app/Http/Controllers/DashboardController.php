@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
 use App\Enums\Permission;
+use App\Models\Bill;
 use App\Models\User;
 use App\Reports\Period;
 use App\Reports\SalesData;
@@ -77,6 +78,17 @@ class DashboardController extends Controller
                 'trend' => array_map(fn (string $date, int $paisa): array => ['date' => $date, 'sales' => $paisa], array_keys($trend), array_values($trend)),
                 'running' => OrderData::openOrders(),
                 'openCount' => DB::table('orders')->where('status', OrderStatus::Open->value)->count(),
+                'recentBills' => Bill::query()->with(['order.diningTable', 'payments', 'cashier'])->latest('id')->limit(8)->get()
+                    ->map(fn (Bill $b): array => [
+                        'id' => $b->id,
+                        'number' => $b->number,
+                        'label' => $b->order?->label() ?? '—',
+                        'total' => $b->total,
+                        'due' => $b->due_amount,
+                        'methods' => $b->payments->map(fn ($p): string => $p->method->label())->unique()->values()->all(),
+                        'cashier' => $b->cashier->name ?? '—',
+                        'created_at' => $b->created_at?->toIso8601String(),
+                    ])->all(),
             ],
         ]);
     }

@@ -318,10 +318,17 @@ const STATUS_STYLE: Record<Line['status'], string> = {
                     v-for="item in visibleItems"
                     :key="item.id"
                     type="button"
-                    class="flex min-h-20 flex-col items-start rounded-xl border p-3 text-left transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                    class="flex min-h-20 flex-col items-start overflow-hidden rounded-xl border p-3 text-left transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                     :disabled="!item.orderable || addForm.processing"
                     @click="tapItem(item)"
                 >
+                    <img
+                        v-if="item.image_url"
+                        :src="item.image_url"
+                        alt=""
+                        loading="lazy"
+                        class="-mx-3 -mt-3 mb-2 h-20 w-[calc(100%+1.5rem)] max-w-none object-cover"
+                    />
                     <span
                         class="flex w-full items-start gap-1.5 leading-tight font-semibold"
                     >
