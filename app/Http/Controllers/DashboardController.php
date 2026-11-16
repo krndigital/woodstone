@@ -82,7 +82,7 @@ class DashboardController extends Controller
                     ->map(fn (Bill $b): array => [
                         'id' => $b->id,
                         'number' => $b->number,
-                        'label' => $b->order?->label() ?? '—',
+                        'label' => $b->order->label(),
                         'total' => $b->total,
                         'due' => $b->due_amount,
                         'methods' => $b->payments->map(fn ($p): string => $p->method->label())->unique()->values()->all(),
