@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\Menu\LoadWoodstoneMenu;
 use App\Enums\Role;
+use App\Models\MenuItem;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +60,12 @@ class InstallCommand extends Command
             } catch (Throwable) {
                 $this->warn('Could not link public/storage (symlinks off on this host). Photos and receipts will not show; ask the host to allow symlinks.');
             }
+        }
+
+        // First install: load WoodStone's own menu with prices and photos.
+        if (! MenuItem::query()->exists()) {
+            $c = app(LoadWoodstoneMenu::class)->handle();
+            $this->info("Menu loaded: {$c['created']} items with prices and photos.");
         }
 
         $this->call('optimize:clear');

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import SettingsController from '@/actions/App/Http/Controllers/Admin/SettingsController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,8 @@ type AppSettings = {
     guest_call_any_status: boolean;
     fiscal_year_label: string;
     fiscal_year_starts_on: string;
+    logo_path: string | null;
+    favicon_path: string | null;
 };
 
 const props = defineProps<{
@@ -70,6 +72,40 @@ const preview = computed(() => {
 
 function save(): void {
     form.submit(SettingsController.update(), { preserveScroll: true });
+}
+
+/* logo and favicon */
+const page = usePage();
+const logoUrl = computed(() => page.props.branding?.logo ?? null);
+const faviconUrl = computed(() =>
+    props.settings.favicon_path
+        ? `/storage/${props.settings.favicon_path}`
+        : null,
+);
+const brandingError = ref<string | null>(null);
+function uploadBranding(kind: 'logo' | 'favicon', e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    brandingError.value = null;
+    router.post(
+        SettingsController.uploadBranding().url,
+        { kind, file },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onError: (errors) => {
+                brandingError.value =
+                    errors.file ?? errors.kind ?? 'Upload failed.';
+            },
+            onFinish: () => (input.value = ''),
+        },
+    );
+}
+function removeBranding(kind: 'logo' | 'favicon'): void {
+    router.delete(SettingsController.removeBranding(kind).url, {
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -333,6 +369,85 @@ function save(): void {
                     inputmode="decimal"
                 /><InputError :message="form.errors.tier_gold_spend" />
             </div>
+        </section>
+
+        <section class="grid gap-4 rounded-xl border p-5 sm:grid-cols-2">
+            <h2 class="font-bold sm:col-span-2">Logo and browser icon</h2>
+            <div class="flex items-center gap-4">
+                <div
+                    class="flex size-20 items-center justify-center overflow-hidden rounded-xl border bg-white"
+                >
+                    <img
+                        v-if="logoUrl"
+                        :src="logoUrl"
+                        alt="Logo"
+                        class="size-20 object-contain"
+                    />
+                    <span v-else class="text-xs text-muted-foreground"
+                        >No logo</span
+                    >
+                </div>
+                <div class="flex flex-col gap-2 text-sm">
+                    <Label for="logo">Logo (sidebar, sign-in page, bill)</Label>
+                    <input
+                        id="logo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        class="text-sm"
+                        @change="uploadBranding('logo', $event)"
+                    />
+                    <button
+                        v-if="logoUrl"
+                        type="button"
+                        class="self-start text-xs text-red-600 underline"
+                        @click="removeBranding('logo')"
+                    >
+                        Remove logo
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div
+                    class="flex size-20 items-center justify-center overflow-hidden rounded-xl border bg-white"
+                >
+                    <img
+                        v-if="faviconUrl"
+                        :src="faviconUrl"
+                        alt="Favicon"
+                        class="size-10 object-contain"
+                    />
+                    <span v-else class="text-xs text-muted-foreground"
+                        >Default</span
+                    >
+                </div>
+                <div class="flex flex-col gap-2 text-sm">
+                    <Label for="favicon"
+                        >Favicon (browser tab icon, square PNG or ICO)</Label
+                    >
+                    <input
+                        id="favicon"
+                        type="file"
+                        accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/webp"
+                        class="text-sm"
+                        @change="uploadBranding('favicon', $event)"
+                    />
+                    <button
+                        v-if="faviconUrl"
+                        type="button"
+                        class="self-start text-xs text-red-600 underline"
+                        @click="removeBranding('favicon')"
+                    >
+                        Remove favicon
+                    </button>
+                </div>
+            </div>
+            <p class="text-xs text-muted-foreground sm:col-span-2">
+                PNG, JPG, WebP or ICO, up to 1 MB. A square image works best.
+            </p>
+            <InputError
+                :message="brandingError ?? undefined"
+                class="sm:col-span-2"
+            />
         </section>
 
         <section class="grid gap-4 rounded-xl border p-5 sm:grid-cols-2">

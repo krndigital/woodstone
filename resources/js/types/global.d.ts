@@ -21,6 +21,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             terminal: SharedTerminal;
             sidebarOpen: boolean;
+            branding: { logo: string | null };
             [key: string]: unknown;
         };
     }

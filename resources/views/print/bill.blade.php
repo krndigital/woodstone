@@ -7,6 +7,8 @@
     $at = $bill->created_at?->timezone('Asia/Kathmandu');
 @endphp
 @section('body')
+    @php($logo = \App\Support\Branding::url('logo'))
+    @if ($logo)<div class="c"><img src="{{ $logo }}" alt="" style="max-height:60px;max-width:70%;filter:grayscale(1)"></div>@endif
     <h1>{{ $settings['restaurant_name'] }}</h1>
     <div class="c">{{ $settings['address'] }}</div>
     @if ($settings['phone'])<div class="c">Phone: {{ $settings['phone'] }}</div>@endif
@@ -22,7 +24,8 @@
         <tr><td>{{ $bill->order->type->value === 'dine_in' ? 'Table' : 'Order' }}</td><td class="r">{{ $bill->order->label() }}</td></tr>
         <tr><td>Waiter</td><td class="r">{{ $bill->order->waiter->name }}</td></tr>
         <tr><td>Cashier</td><td class="r">{{ $bill->cashier->name }}</td></tr>
-        @if ($bill->order->customer_name)<tr><td>Customer</td><td class="r">{{ $bill->order->customer_name }}</td></tr>@endif
+        @if ($bill->order->customer_name)<tr><td>Customer</td><td class="r">{{ $bill->order->customer_name }}</td></tr>
+        @elseif ($bill->customer)<tr><td>Customer</td><td class="r">{{ $bill->customer->name }}{{ $bill->customer->phone ? ' · '.$bill->customer->phone : '' }}</td></tr>@endif
     </table>
     <hr>
     <table>
@@ -48,7 +51,7 @@
     </table>
     <hr>
     @if ($paidNow->isNotEmpty())
-        <div class="b">PAID NOW</div>
+        <div class="b">PAID</div>
         <table>
             @foreach ($paidNow as $p)
                 <tr><td>{{ $p->payer ? $p->payer.' · ' : '' }}{{ $p->method->label() }}{{ $p->reference ? ' #'.$p->reference : '' }}</td><td class="r">{{ $rs($p->amount) }}</td></tr>

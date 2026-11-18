@@ -45,6 +45,9 @@ final class Settings
             'tier_silver_spend' => '25000.00',
             'tier_gold_spend' => '75000.00',
             'guest_call_any_status' => false,
+            'logo_path' => null,
+            'favicon_path' => null,
+            'role_permissions' => [],
             'fiscal_year_label' => $fy['label'],
             'fiscal_year_starts_on' => $fy['starts_on'],
         ];

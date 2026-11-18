@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Users\GuardLastSuperAdmin;
 use App\Actions\Users\SaveUser;
+use App\Enums\Permission;
 use App\Enums\Role;
 use App\Http\Requests\Users\ResetUserPasswordRequest;
 use App\Http\Requests\Users\StoreUserRequest;
@@ -75,7 +76,7 @@ class UserController extends Controller
             'users' => $users,
             'filters' => ['q' => $search, 'role' => $role?->value, 'status' => $status],
             'roles' => Role::options(),
-            'assignableRoles' => array_map(fn (Role $r): array => ['value' => $r->value, 'label' => $r->label(), 'can_use_pin' => $r->canUsePin()], $assignable),
+            'assignableRoles' => array_map(fn (Role $r): array => ['value' => $r->value, 'label' => $r->label(), 'can_use_pin' => $r->canUsePin(), 'permissions' => array_map(fn (Permission $p): string => $p->label(), $r->permissions())], $assignable),
         ]);
     }
 

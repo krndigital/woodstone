@@ -41,6 +41,28 @@ initializeTheme();
 // This will listen for flash toast data from the server...
 initializeFlashToast();
 
+// Hover hint for icon buttons: show their aria-label as a tooltip.
+const addTitles = (root: ParentNode): void => {
+    root.querySelectorAll<HTMLElement>(
+        'button[aria-label]:not([title]), a[aria-label]:not([title])',
+    ).forEach((el) => {
+        el.title = el.getAttribute('aria-label') ?? '';
+    });
+};
+let titlesQueued = false;
+new MutationObserver(() => {
+    if (titlesQueued) return;
+    titlesQueued = true;
+    requestAnimationFrame(() => {
+        titlesQueued = false;
+        addTitles(document);
+    });
+}).observe(document.body, {
+    childList: true,
+    subtree: true,
+});
+addTitles(document);
+
 // Installable on phones and tablets (waiter app). No offline caching.
 if (
     'serviceWorker' in navigator &&

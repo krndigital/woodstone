@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Accounting\AccountingController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\PinLoginController;
 use App\Http\Controllers\Billing\BillController;
@@ -66,6 +67,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:settings.manage')->group(function () {
         Route::get('admin/settings', [SettingsController::class, 'edit'])->name('admin.settings.edit');
         Route::put('admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+        Route::post('admin/settings/branding', [SettingsController::class, 'uploadBranding'])->middleware('throttle:20,1')->name('admin.settings.branding');
+        Route::delete('admin/settings/branding/{kind}', [SettingsController::class, 'removeBranding'])->name('admin.settings.branding.remove');
+        Route::get('admin/roles', [RoleController::class, 'edit'])->name('admin.roles.edit');
+        Route::put('admin/roles', [RoleController::class, 'update'])->name('admin.roles.update');
     });
 
     // Floor (step 3).

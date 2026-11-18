@@ -177,7 +177,7 @@ class BillingTest extends TestCase
 
         $this->actingAs($cashier)->get(route('billing.bills.print', $bill))
             ->assertOk()
-            ->assertSee('PAID NOW')->assertSee('ON DUE')->assertSee('DUE ACCOUNT')->assertSee('Ram Office')
+            ->assertSee('PAID')->assertDontSee('PAID NOW')->assertSee('ON DUE')->assertSee('DUE ACCOUNT')->assertSee('Ram Office')
             ->assertSee('Service charge (0%)')->assertSee('VAT (0%)')
             ->assertDontSee('COPY');
         $this->actingAs($cashier)->get(route('billing.bills.print', $bill))->assertOk()->assertSee('COPY');

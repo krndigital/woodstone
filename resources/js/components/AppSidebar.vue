@@ -16,6 +16,7 @@ import {
     MonitorSmartphone,
     Package,
     Settings2,
+    ShieldCheck,
     ShoppingCart,
     UtensilsCrossed,
     Users,
@@ -36,6 +37,7 @@ import {
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { index as accountingIndex } from '@/routes/accounting';
+import { edit as rolesEdit } from '@/routes/admin/roles';
 import { edit as settingsEdit } from '@/routes/admin/settings';
 import { index as billingIndex } from '@/routes/billing';
 import { index as customersIndex } from '@/routes/customers';
@@ -162,6 +164,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Settings',
             href: settingsEdit(),
             icon: Settings2,
+        });
+        items.push({
+            title: 'Roles & access',
+            href: rolesEdit(),
+            icon: ShieldCheck,
         });
     }
 

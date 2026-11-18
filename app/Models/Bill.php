@@ -77,6 +77,16 @@ class Bill extends Model
     }
 
     /**
+     * Guest the bill belongs to (points, history, due).
+     *
+     * @return BelongsTo<Customer, $this>
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function cashier(): BelongsTo

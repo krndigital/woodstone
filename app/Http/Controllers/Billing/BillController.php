@@ -172,7 +172,7 @@ class BillController extends Controller
      */
     public function print(Request $request, Bill $bill): View
     {
-        $bill->load(['order.diningTable', 'order.waiter:id,name', 'order.items', 'cashier:id,name', 'payments.customer']);
+        $bill->load(['order.diningTable', 'order.waiter:id,name', 'order.items', 'cashier:id,name', 'payments.customer', 'customer']);
         $copy = $bill->print_count > 0;
         $bill->forceFill(['print_count' => $bill->print_count + 1])->save();
 

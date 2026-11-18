@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Banknote,
@@ -15,6 +15,7 @@ import {
 } from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
 import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
+import CustomerController from '@/actions/App/Http/Controllers/Dues/CustomerController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -93,6 +94,64 @@ const lines = computed(() =>
 );
 /* the guest this bill belongs to: visit history and loyalty points (FR-10.4 to 10.6) */
 const billCustomer = ref<Customer | null>(null);
+
+/* add a customer right here (name + mobile), then use it for the bill or a due payment */
+const newCustomer = reactive<{
+    target: 'bill' | number | null;
+    name: string;
+    phone: string;
+    processing: boolean;
+    error: string | null;
+}>({ target: null, name: '', phone: '', processing: false, error: null });
+function openNewCustomer(target: 'bill' | number): void {
+    newCustomer.target = target;
+    newCustomer.name =
+        target === 'bill'
+            ? billCustomerQuery.value.replace(/[\d+ ]/g, '').trim()
+            : '';
+    newCustomer.phone =
+        target === 'bill' ? billCustomerQuery.value.replace(/[^\d+]/g, '') : '';
+    newCustomer.error = null;
+}
+function saveNewCustomer(): void {
+    const target = newCustomer.target;
+    const name = newCustomer.name.trim();
+    const phone = newCustomer.phone.trim();
+    router.post(
+        CustomerController.store().url,
+        { name, phone: phone === '' ? null : phone },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onStart: () => (newCustomer.processing = true),
+            onFinish: () => (newCustomer.processing = false),
+            onError: (errors) => {
+                newCustomer.error =
+                    errors.phone ??
+                    errors.name ??
+                    'Could not add the customer.';
+            },
+            onSuccess: (page) => {
+                const list = (page.props.customers ?? []) as Customer[];
+                const added = list
+                    .filter(
+                        (c) =>
+                            c.name === name &&
+                            (phone === '' || c.phone === phone),
+                    )
+                    .sort((a, b) => b.id - a.id)[0];
+                if (!added) return;
+                if (target === 'bill') {
+                    billCustomer.value = added;
+                    billCustomerQuery.value = '';
+                } else if (typeof target === 'number' && people.value[target]) {
+                    people.value[target].customer_id = added.id;
+                }
+                newCustomer.target = null;
+            },
+        },
+    );
+}
 const billCustomerQuery = ref('');
 const billCustomerMatches = computed(() => {
     const q = billCustomerQuery.value.trim().toLowerCase();
@@ -148,6 +207,13 @@ const overLimit = computed(
 type Mode = 'single' | 'amount' | 'items';
 const mode = ref<Mode>('single');
 const people = ref<Person[]>([]);
+// Putting a share on due uses the bill's customer if one is chosen (single or group bill).
+function pickMethod(p: Person, method: Method): void {
+    p.method = method;
+    if (method === 'due' && p.customer_id === null && billCustomer.value) {
+        p.customer_id = billCustomer.value.id;
+    }
+}
 const newPerson = (i: number): Person => ({
     payer: `Person ${i + 1}`,
     method: 'cash',
@@ -343,9 +409,12 @@ function pay(): void {
             </div>
 
             <div
-                v-if="customers.length"
+                v-if="customers.length || can.due"
                 class="flex flex-col gap-2 rounded-xl border p-3"
             >
+                <div class="text-xs font-semibold text-muted-foreground">
+                    Customer (optional — needed for due, points and history)
+                </div>
                 <div
                     v-if="billCustomer"
                     class="flex items-center justify-between text-sm"
@@ -386,6 +455,56 @@ function pay(): void {
                             }}</span></span
                         ><span class="text-xs">{{ c.points }} pts</span>
                     </button>
+                    <div
+                        v-if="can.due"
+                        class="flex flex-col gap-2 rounded-lg border border-dashed p-2"
+                    >
+                        <button
+                            v-if="newCustomer.target !== 'bill'"
+                            type="button"
+                            class="self-start text-sm font-semibold text-orange-700"
+                            @click="openNewCustomer('bill')"
+                        >
+                            + New customer
+                        </button>
+                        <template v-else>
+                            <div class="grid grid-cols-2 gap-2">
+                                <Input
+                                    v-model="newCustomer.name"
+                                    placeholder="Name"
+                                    aria-label="New customer name"
+                                />
+                                <Input
+                                    v-model="newCustomer.phone"
+                                    inputmode="tel"
+                                    placeholder="Mobile (optional)"
+                                    aria-label="New customer mobile"
+                                />
+                            </div>
+                            <div class="flex gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        newCustomer.processing ||
+                                        newCustomer.name.trim() === ''
+                                    "
+                                    @click="saveNewCustomer"
+                                    >Add and use</Button
+                                >
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    @click="newCustomer.target = null"
+                                    >Cancel</Button
+                                >
+                            </div>
+                            <InputError
+                                :message="newCustomer.error ?? undefined"
+                            />
+                        </template>
+                    </div>
                 </template>
                 <InputError :message="errorFor('customer_id')" />
             </div>
@@ -547,7 +666,7 @@ function pay(): void {
                                     ? 'border-foreground bg-foreground text-background'
                                     : ''
                             "
-                            @click="p.method = m.value"
+                            @click="pickMethod(p, m.value)"
                         >
                             <component :is="ICON[m.value]" class="size-4" />
                             {{ m.label }}
@@ -644,13 +763,57 @@ function pay(): void {
                                         >Due {{ rs(c.balance) }}</span
                                     >
                                 </button>
-                                <p
-                                    v-if="customers.length === 0"
-                                    class="text-xs text-muted-foreground"
+                            </div>
+                            <div
+                                class="flex flex-col gap-2 rounded-lg border border-dashed p-2"
+                            >
+                                <button
+                                    v-if="newCustomer.target !== i"
+                                    type="button"
+                                    class="self-start text-sm font-semibold text-orange-700"
+                                    @click="openNewCustomer(i)"
                                 >
-                                    No customers yet. Add them on the Customers
-                                    page.
-                                </p>
+                                    + New customer
+                                </button>
+                                <template v-else>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <Input
+                                            v-model="newCustomer.name"
+                                            placeholder="Name"
+                                            aria-label="New customer name"
+                                        />
+                                        <Input
+                                            v-model="newCustomer.phone"
+                                            inputmode="tel"
+                                            placeholder="Mobile (optional)"
+                                            aria-label="New customer mobile"
+                                        />
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            :disabled="
+                                                newCustomer.processing ||
+                                                newCustomer.name.trim() === ''
+                                            "
+                                            @click="saveNewCustomer"
+                                            >Add and use</Button
+                                        >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            @click="newCustomer.target = null"
+                                            >Cancel</Button
+                                        >
+                                    </div>
+                                    <InputError
+                                        :message="
+                                            newCustomer.error ?? undefined
+                                        "
+                                    />
+                                </template>
                             </div>
                         </template>
                         <p

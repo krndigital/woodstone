@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\Branding;
 use App\Support\TerminalContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $this->sharedUser($request->user()),
             ],
             'terminal' => $this->sharedTerminal($request),
+            'branding' => ['logo' => Branding::url('logo')],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

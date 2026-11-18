@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\BrandingRequest;
 use App\Http\Requests\Admin\SettingsRequest;
 use App\Models\User;
 use App\Support\BsDate;
 use App\Support\Money;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,6 +62,44 @@ class SettingsController extends Controller
         Settings::save($data, $user);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings saved.')]);
+
+        return back();
+    }
+
+    /** Logo (sidebar, sign-in page, bill) or browser favicon. */
+    public function uploadBranding(BrandingRequest $request): RedirectResponse
+    {
+        $kind = $request->string('kind')->toString();
+        $key = $kind.'_path';
+        $old = Settings::get($key);
+        $path = $request->file('file')?->store('branding', 'public');
+        if (! is_string($path)) {
+            return back()->withErrors(['file' => __('Upload failed. Try again.')]);
+        }
+
+        /** @var User $user */
+        $user = $request->user();
+        Settings::save([$key => $path], $user);
+        if (is_string($old) && $old !== '') {
+            Storage::disk('public')->delete($old);
+        }
+        Inertia::flash('toast', ['type' => 'success', 'message' => $kind === 'logo' ? __('Logo saved.') : __('Favicon saved. Refresh the browser tab to see it.')]);
+
+        return back();
+    }
+
+    public function removeBranding(Request $request, string $kind): RedirectResponse
+    {
+        abort_unless(in_array($kind, ['logo', 'favicon'], true), 404);
+        $old = Settings::get($kind.'_path');
+
+        /** @var User $user */
+        $user = $request->user();
+        Settings::save([$kind.'_path' => null], $user);
+        if (is_string($old) && $old !== '') {
+            Storage::disk('public')->delete($old);
+        }
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Removed.')]);
 
         return back();
     }

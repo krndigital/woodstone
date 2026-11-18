@@ -44,7 +44,7 @@ type Row = {
 };
 
 type Option = { value: string; label: string };
-type AssignableRole = Option & { can_use_pin: boolean };
+type AssignableRole = Option & { can_use_pin: boolean; permissions: string[] };
 
 const props = defineProps<{
     users: Row[];
@@ -82,6 +82,44 @@ watch(q, () => {
     clearTimeout(timer);
     timer = setTimeout(applyFilters, 300);
 });
+
+/* ---------- live hints while typing a new login ---------- */
+const usernameChecks = computed(() => {
+    const u = form.username.trim();
+    return [
+        { ok: u.length >= 3 && u.length <= 50, text: '3 to 50 characters' },
+        {
+            ok: u !== '' && /^[a-zA-Z0-9._-]+$/.test(u),
+            text: 'Only letters, numbers, dot ( . ), dash ( - ) or underscore ( _ ) — no spaces',
+        },
+    ];
+});
+const usernameSuggestions = computed(() => {
+    const first =
+        form.name
+            .trim()
+            .toLowerCase()
+            .split(/\s+/)[0]
+            ?.replace(/[^a-z0-9]/g, '') ?? '';
+    if (first === '') return [];
+    const role = (form.role || 'staff').replace('_', '');
+    return [
+        `${first}.${role}`,
+        `${first}${new Date().getFullYear() % 100}`,
+        `${first}.ws`,
+    ].filter((s) => s !== form.username);
+});
+const passwordChecks = computed(() => {
+    const p = form.password;
+    return [
+        { ok: p.length >= 10, text: 'At least 10 characters' },
+        { ok: /[a-zA-Z]/.test(p), text: 'Has a letter' },
+        { ok: /\d/.test(p), text: 'Has a number' },
+    ];
+});
+const selectedRole = computed(() =>
+    props.assignableRoles.find((r) => r.value === form.role),
+);
 
 /* ---------- create / edit drawer ---------- */
 const open = ref(false);
@@ -129,7 +167,12 @@ function generatePassword(): void {
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
     const bytes = new Uint32Array(12);
     crypto.getRandomValues(bytes);
-    form.password = Array.from(bytes, (b) => chars[b % chars.length]).join('');
+    let pw = '';
+    do {
+        crypto.getRandomValues(bytes);
+        pw = Array.from(bytes, (b) => chars[b % chars.length]).join('');
+    } while (!/\d/.test(pw) || !/[a-z]/.test(pw));
+    form.password = pw;
 }
 
 function save(): void {
@@ -437,6 +480,37 @@ function lastSeen(iso: string | null): string {
                         autocomplete="off"
                         placeholder="e.g. sita.waiter"
                     />
+                    <ul class="flex flex-col gap-0.5 text-xs">
+                        <li
+                            v-for="c in usernameChecks"
+                            :key="c.text"
+                            :class="
+                                c.ok
+                                    ? 'text-green-700 dark:text-green-400'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{ c.ok ? '✓' : '•' }} {{ c.text }}
+                        </li>
+                        <li class="text-muted-foreground">
+                            • Capital letters become small (Sita → sita)
+                        </li>
+                    </ul>
+                    <div
+                        v-if="usernameSuggestions.length && !editing"
+                        class="flex flex-wrap items-center gap-1 text-xs"
+                    >
+                        <span class="text-muted-foreground">Try:</span>
+                        <button
+                            v-for="sug in usernameSuggestions"
+                            :key="sug"
+                            type="button"
+                            class="rounded-full border px-2 py-0.5 font-semibold hover:bg-muted"
+                            @click="form.username = sug"
+                        >
+                            {{ sug }}
+                        </button>
+                    </div>
                     <InputError :message="form.errors.username" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -479,6 +553,20 @@ function lastSeen(iso: string | null): string {
                             {{ r.label }}
                         </button>
                     </div>
+                    <div
+                        v-if="selectedRole"
+                        class="rounded-lg bg-muted p-2 text-xs"
+                    >
+                        <b>{{ selectedRole.label }} can:</b>
+                        <ul class="mt-1 list-inside list-disc">
+                            <li v-for="p in selectedRole.permissions" :key="p">
+                                {{ p }}
+                            </li>
+                        </ul>
+                        <p class="mt-1 text-muted-foreground">
+                            Change this in Settings → Roles &amp; access.
+                        </p>
+                    </div>
                     <InputError :message="form.errors.role" />
                 </div>
                 <div v-if="!editing" class="grid gap-2">
@@ -498,9 +586,22 @@ function lastSeen(iso: string | null): string {
                             >Generate</Button
                         >
                     </div>
+                    <ul class="flex flex-col gap-0.5 text-xs">
+                        <li
+                            v-for="c in passwordChecks"
+                            :key="c.text"
+                            :class="
+                                c.ok
+                                    ? 'text-green-700 dark:text-green-400'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{ c.ok ? '✓' : '•' }} {{ c.text }}
+                        </li>
+                    </ul>
                     <p class="text-xs text-muted-foreground">
                         Share it privately. It works once — they choose their
-                        own at first sign-in.
+                        own at first sign-in. Or tap Generate.
                     </p>
                     <InputError :message="form.errors.password" />
                 </div>
