@@ -25,7 +25,7 @@ class RolePermissionsRequest extends FormRequest
     public function rules(): array
     {
         $roles = array_values(array_map(fn (Role $r): string => $r->value, array_filter(Role::cases(), fn (Role $r): bool => $r !== Role::SuperAdmin)));
-        $permissions = array_values(array_map(fn (Permission $p): string => $p->value, array_filter(Permission::cases(), fn (Permission $p): bool => $p !== Permission::ManageSettings)));
+        $permissions = array_map(fn (Permission $p): string => $p->value, array_filter(Permission::cases(), fn (Permission $p): bool => $p !== Permission::ManageSettings));
 
         return [
             'roles' => ['required', 'array:'.implode(',', $roles)],
@@ -41,7 +41,8 @@ class RolePermissionsRequest extends FormRequest
     {
         $out = [];
         foreach (Role::cases() as $role) {
-            if ($role === Role::SuperAdmin) {
+            // Roles not sent keep what they have now.
+            if ($role === Role::SuperAdmin || ! $this->has("roles.{$role->value}")) {
                 continue;
             }
             /** @var list<string> $given */

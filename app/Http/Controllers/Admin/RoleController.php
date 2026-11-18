@@ -32,10 +32,10 @@ class RoleController extends Controller
                 'defaults' => array_map(fn (Permission $p): string => $p->value, $r->defaultPermissions()),
                 'users' => User::query()->where('role', $r->value)->count(),
             ], $roles),
-            'permissions' => array_values(array_map(
+            'permissions' => array_map(
                 fn (Permission $p): array => ['value' => $p->value, 'label' => $p->label()],
                 array_filter(Permission::cases(), fn (Permission $p): bool => $p !== Permission::ManageSettings),
-            )),
+            ),
         ]);
     }
 
@@ -43,7 +43,8 @@ class RoleController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        Settings::save(['role_permissions' => $request->permissionsByRole()], $user);
+        $current = Settings::get('role_permissions');
+        Settings::save(['role_permissions' => array_merge(is_array($current) ? $current : [], $request->permissionsByRole())], $user);
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Roles & access saved. Staff see the change on their next screen.')]);
 
         return back();
