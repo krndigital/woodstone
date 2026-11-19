@@ -32,6 +32,13 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        // Folders the package may not carry (empty folders are not zipped).
+        foreach (['framework/sessions', 'framework/views', 'framework/cache/data', 'logs', 'app/public', 'app/backups'] as $dir) {
+            if (! is_dir(storage_path($dir))) {
+                mkdir(storage_path($dir), 0775, true);
+            }
+        }
+
         if ((string) config('app.key') === '') {
             $this->call('key:generate', ['--force' => true]);
             $this->warn('App key created. Run this command once more so the new key is loaded.');

@@ -62,7 +62,7 @@ jobs:
           mkdir -p dist
           zip -qr dist/woodstone-cpanel.zip . \
             -x '.git/*' 'node_modules/*' 'tests/*' 'dist/*' '.github/*' 'storage/logs/*.log' \
-               'database/database.sqlite' 'storage/framework/cache/data/*' 'storage/framework/sessions/*' \
+               'database/database.sqlite' 'storage/framework/cache/data/*' 'storage/framework/sessions/[!.]*' \
                'storage/framework/views/*.php' '.env' 'public/hot' '.phpunit.cache/*'
           ls -lh dist
 
