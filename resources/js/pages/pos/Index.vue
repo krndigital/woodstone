@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Bike, Plus, RefreshCw, ShoppingBag, Store, Users } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BillController from '@/actions/App/Http/Controllers/Billing/BillController';
+import FloorController from '@/actions/App/Http/Controllers/Floor/FloorController';
 import PosController from '@/actions/App/Http/Controllers/Pos/PosController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -121,7 +122,20 @@ function tap(t: Table): void {
         router.visit(PosController.show(existing.id));
         return;
     }
+    // Paid table waiting for cleaning: one tap marks it clean and starts the next guest's order.
+    if (t.status === 'cleaning') {
+        router.patch(
+            FloorController.updateStatus(t.id).url,
+            { status: 'free' },
+            { preserveScroll: true, onSuccess: () => openFor(t) },
+        );
+        return;
+    }
     if (t.status !== 'free' && t.status !== 'reserved') return;
+    openFor(t);
+}
+
+function openFor(t: Table): void {
     form.reset();
     form.clearErrors();
     form.type = 'dine_in';
@@ -236,9 +250,6 @@ function open(): void {
                     type="button"
                     class="flex min-h-24 flex-col items-start gap-0.5 rounded-xl border-2 p-3 text-left transition active:scale-95 disabled:opacity-60"
                     :class="STYLE[t.status]"
-                    :disabled="
-                        t.status === 'cleaning' && !orderByTable.get(t.id)
-                    "
                     @click="tap(t)"
                 >
                     <span class="text-lg font-bold">{{ t.code }}</span>
@@ -260,7 +271,9 @@ function open(): void {
                         <span class="text-xs">{{
                             t.status === 'reserved'
                                 ? t.reserved_for
-                                : t.status_label
+                                : t.status === 'cleaning'
+                                  ? 'Paid · tap to start next guest'
+                                  : t.status_label
                         }}</span>
                     </template>
                 </button>
