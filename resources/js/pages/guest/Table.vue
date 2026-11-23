@@ -100,7 +100,7 @@ onMounted(() => {
         callId.value = id;
         status.value = { status: 'sent', type: '', waiter: null };
         clearInterval(poll);
-        poll = setInterval(check, 4000);
+        poll = setInterval(() => !document.hidden && check(), 8000);
     });
 });
 onBeforeUnmount(() => {

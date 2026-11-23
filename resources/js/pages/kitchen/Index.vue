@@ -46,7 +46,7 @@ let clock: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
     poll = setInterval(
         () => !document.hidden && router.reload({ only: ['kots'] }),
-        8000,
+        12000,
     );
     clock = setInterval(() => (now.value = Date.now()), 30000);
 });

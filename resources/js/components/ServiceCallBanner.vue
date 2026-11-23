@@ -125,7 +125,7 @@ const visible = computed(
 onMounted(() => {
     if (!can('pos.use')) return;
     void load();
-    timer = setInterval(load, 10000);
+    timer = setInterval(load, 15000);
 });
 onBeforeUnmount(() => clearInterval(timer));
 </script>
