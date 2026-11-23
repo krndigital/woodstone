@@ -145,7 +145,7 @@ const LABEL: Record<Item['status'], string> = {
             >
         </div>
         <p class="-mt-2 text-sm text-muted-foreground">
-            Tap an item: New → Cooking → Ready. Updates every 8 seconds.
+            Tap an item: New → Cooking → Ready. Updates every 12 seconds.
         </p>
 
         <p
