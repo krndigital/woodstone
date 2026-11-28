@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, RefreshCw } from '@lucide/vue';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import FloorController from '@/actions/App/Http/Controllers/Floor/FloorController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -162,6 +162,15 @@ function editTable(t: Table | null): void {
     tableForm.sort_order = t?.sort_order ?? 0;
     tableForm.is_active = t?.is_active ?? true;
 }
+// A zone added while the table form is open becomes its zone straight away.
+watch(
+    () => props.zones.length,
+    () => {
+        if (tableForm.zone_id === null && props.zones.length > 0) {
+            tableForm.zone_id = props.zones[0].id;
+        }
+    },
+);
 function saveTable(): void {
     tableForm.submit(
         tableEditing.value
@@ -422,6 +431,13 @@ function saveTable(): void {
                             required
                         >
                             <option
+                                v-if="zones.length === 0"
+                                :value="null"
+                                disabled
+                            >
+                                Add a zone first (left)
+                            </option>
+                            <option
                                 v-for="z in zones"
                                 :key="z.id"
                                 :value="z.id"
@@ -476,7 +492,9 @@ function saveTable(): void {
                         <Button
                             type="submit"
                             class="h-10"
-                            :disabled="tableForm.processing"
+                            :disabled="
+                                tableForm.processing || zones.length === 0
+                            "
                             >{{ tableEditing ? 'Save' : 'Add table' }}</Button
                         >
                     </div>
